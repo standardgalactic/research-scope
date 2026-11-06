@@ -1,5 +1,13 @@
 # Research Scope
 
+[Differential Calculus for Datatypes](https://standardgalactic.github.io/research-scope/differential-calculus-datatypes.pdf)
+
+[Local Transitions and Global Admissibility](https://standardgalactic.github.io/research-scope/local-transitions-global-admissibility.pdf)
+
+[Coordination After Storage](https://standardgalactic.github.io/research-scope/coordination-after-storage.pdf)
+
+* [Audio Overviews](https://standardgalactic.github.io/research-scope/)
+
 An interdisciplinary research collection examining
 computation, formal structures, scientific modeling,
 coordination, and the limits of inference.
@@ -48,20 +56,10 @@ coordination, and admissibility boundaries.
 
 ## Interactive presentation
 
-[Open Research Scope](research-scope.html)
+[Open Research Scope](index.html)
 
 The HTML presentation provides an interface to
 the accompanying research audio and transcripts.
-
-## Transcription utilities
-
-`fix_transcription_errors.sh` supports correction
-of transcription and subtitle files.
-
-## Repository structure
-
-The repository retains the original flat layout,
-allowing existing relative paths to remain valid.
 
 ## Author
 

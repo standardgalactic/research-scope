@@ -8,7 +8,7 @@
 </style>
 </head>
 <body><main>
-<header><div><div class="brand">RESEARCH SCOPE / AUDIO ESSAYS</div><h1 id="title">Research Scope</h1></div><select id="track" aria-label="Select audio track"><option value="derivatives">Data structures</option><option value="weather">AI weather models</option></select></header>
+<header><div><div class="brand">RESEARCH SCOPE / AUDIO ESSAYS</div><h1 id="title">Research Scope</h1></div><select id="track" aria-label="Select audio track"><option value="derivatives">Data structures</option><option value="weather">AI weather models</option><option value="git">Why 5,000 AI Agents Break Git</option></select></header>
 <div class="scope"><span class="scope-label" id="signal">X–Y / STANDBY</span><canvas id="scope" aria-label="Audio-driven Lissajous-style oscilloscope"></canvas></div>
 <div id="captions" aria-label="Subtitles">Press play to begin.</div>
 <audio id="audio" preload="metadata" controls></audio>
@@ -19,7 +19,7 @@
 <script>
 'use strict';
 const $=id=>document.getElementById(id),audio=$('audio');
-const tracks={derivatives:{title:'Taking the Derivative of Data Structures',stem:'Taking_the_Derivative_of_Data_Structures'},weather:{title:'Why AI Weather Models Delete Oceans',stem:'Why_AI_Weather_Models_Delete_Oceans'}};
+const tracks={derivatives:{title:'Taking the Derivative of Data Structures',stem:'Taking_the_Derivative_of_Data_Structures'},weather:{title:'Why AI Weather Models Delete Oceans',stem:'Why_AI_Weather_Models_Delete_Oceans'},git:{title:'Why 5,000 AI Agents Break Git',stem:'Why_5,000_AI_Agents_Break_Git'}};
 let current='',cues=[],cc=true,context=null,analyser=null,samples=null,frame=0,request=0,controller=null;
 const reduced=matchMedia('(prefers-reduced-motion: reduce)');
 function stamp(s){const p=s.trim().split(':').map(Number);return p.length>=2&&p.length<=3&&p.every(Number.isFinite)?p.reduce((a,v)=>a*60+v,0):NaN}
