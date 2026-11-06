@@ -1,0 +1,6 @@
+name = "deriv-experiments"
+defaultTargets = ["DerivExperiments"]
+
+[[lean_lib]]
+name = "DerivExperiments"
+roots = ["DerivZipperLaw", "DerivCounting", "DerivNavigation", "DerivMixedPartials"]
