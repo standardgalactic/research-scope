@@ -1,0 +1,4865 @@
+WEBVTT
+
+00:00.000 --> 00:10.380
+If you remember taking calculus in high school, you probably remember, well, finding the slopes of curves and agonizing over limits and calculating rates of change.
+
+00:10.700 --> 00:14.180
+Oh, yeah. The classic trauma of high school math.
+
+00:14.360 --> 00:20.960
+Right. And you also probably thought you'd literally never use it again unless you became a physicist or an engineer.
+
+00:21.800 --> 00:29.520
+I mean, calculus feels very continuous, you know, very analog, heavily grounded in the physical laws of motion and all that.
+
+00:29.520 --> 00:31.680
+Exactly. It's the math of moving things.
+
+00:32.040 --> 00:43.700
+Yeah. But what if I told you that the exact same equations you use to pass high school math are secretly acting as the fundamental architectural blueprints for the software running on your computer right now?
+
+00:43.960 --> 00:45.940
+It is wild to think about.
+
+00:46.140 --> 00:53.740
+It is. The discrete, binary, completely rigid world of ones and zeros is actually governed by the chain rule and the product rule.
+
+00:53.740 --> 01:03.060
+So welcome to this deep dive. Today, we are unpacking a concept that bridges two disciplines that usually have absolutely nothing to do with each other.
+
+01:03.340 --> 01:04.860
+And we're going into the deep end today.
+
+01:05.040 --> 01:11.560
+We really are. We are going to look at what it literally means to take the mathematical derivative of a piece of software.
+
+01:11.840 --> 01:17.320
+Which is just a profound shift in perspective for anyone who codes or honestly, anyone who just uses technology.
+
+01:17.320 --> 01:24.320
+To guide you through this, we're drawing on this highly influential 2026 paper by the independent researcher Flyxion.
+
+01:25.080 --> 01:27.500
+It's titled Differential Calculus for Data Types.
+
+01:27.640 --> 01:30.320
+And it is dense, but we are going to break it all down for you.
+
+01:30.500 --> 01:38.580
+We are because it takes this incredibly theoretical mathematical crossover and applies it to the fundamental day-to-day problems of how software manages memory.
+
+01:38.580 --> 01:44.260
+But I should probably set a strict boundary right here at the start for what we are actually doing.
+
+01:44.460 --> 01:45.500
+Okay, good call. What's the ground rule?
+
+01:45.760 --> 01:51.900
+When we say calculus today, you have to throw out all the concepts of time, velocity, and acceleration.
+
+01:52.180 --> 01:53.220
+Okay, so no physics.
+
+01:53.380 --> 02:00.000
+Right, no physics. We aren't calculating the rate of change of a network's bandwidth or like how fast a processor is spinning. This is pure algebra.
+
+02:00.300 --> 02:01.200
+Just the mechanics of it.
+
+02:01.420 --> 02:07.840
+Exactly. We are taking the mechanical rules of differentiation and applying them to the physical shape and topology of computer data.
+
+02:07.840 --> 02:09.600
+Taking the derivative of software.
+
+02:10.020 --> 02:15.860
+I mean, it sounds like something straight out of a cyberpunk novel, but we are going to walk you through exactly how real it is.
+
+02:16.220 --> 02:21.720
+But to understand why any of this matters to you, we have to look at the foundational problem this solves in the first place.
+
+02:22.040 --> 02:23.720
+The why do we care part.
+
+02:23.980 --> 02:30.040
+Right. We have to look at what happens inside a computer's memory when you try to isolate a single piece of data.
+
+02:30.520 --> 02:33.540
+So let's start with a really good visual from the paper.
+
+02:33.540 --> 02:37.140
+However, imagine you have a sequence of data sitting in a computer's RAM.
+
+02:37.580 --> 02:41.840
+Just a very simple list of three elements. Let's call them A, B, and C.
+
+02:42.060 --> 02:43.100
+Okay. Simple enough.
+
+02:43.600 --> 02:51.240
+Your goal as the software program is to select the middle element, B, remove it, and do something with it.
+
+02:51.440 --> 02:55.820
+Maybe you are editing a document or updating a user profile, whatever.
+
+02:55.820 --> 03:04.500
+However, the critical challenge here is that you must retain exactly enough information to put B back into the exact same spot later.
+
+03:05.100 --> 03:07.720
+Or to replace it with a new element, like D, right?
+
+03:08.040 --> 03:11.020
+Exactly. Without destroying the rest of the list in the process.
+
+03:11.480 --> 03:13.840
+So you are basically poking a hole in the data.
+
+03:13.840 --> 03:20.180
+And to visualize the stakes here, you have to remember that memory in a computer isn't just floating around in a void.
+
+03:20.600 --> 03:22.460
+It's highly, highly structured.
+
+03:22.960 --> 03:23.260
+Very rigid.
+
+03:23.740 --> 03:28.940
+Yeah. Think of a massive, tightly packed, perfectly alphabetized library bookshelf.
+
+03:29.660 --> 03:33.540
+You have this long row of books wedged between two heavy bookends.
+
+03:34.320 --> 03:40.100
+If you need to pull a specific book out from the middle of the shelf to read it, you create an empty space. A hole.
+
+03:40.400 --> 03:42.340
+Right. And the environment doesn't like holes.
+
+03:42.340 --> 03:48.240
+No, it doesn't. If you just walk away with the book, the structural integrity of that shelf is totally compromised.
+
+03:49.020 --> 03:54.180
+The books on either side might fall over, or someone might come along and push the remaining books together to close the gap.
+
+03:55.160 --> 04:00.080
+The environment doesn't naturally remember where that specific book came from once it's gone.
+
+04:00.720 --> 04:03.720
+The structure entirely loses its original state.
+
+04:04.300 --> 04:07.700
+And you know, in the early days of programming, this was a massive source of bugs.
+
+04:07.840 --> 04:08.240
+Oh, I bet.
+
+04:08.240 --> 04:16.100
+Yeah. If a program lost track of where a piece of data belonged, you'd get memory leaks, segmentation faults, totally corrupted databases.
+
+04:16.660 --> 04:19.280
+Pointers would just point to dead, empty space.
+
+04:19.360 --> 04:21.800
+Right. The dreaded no-pointer exception.
+
+04:21.800 --> 04:34.220
+So, to ensure you can put that exact book back, or to put a revised edition of that book back into the correct alphabetical slot, you can't just memorize the title of the book you took.
+
+04:34.660 --> 04:35.540
+That's not enough.
+
+04:35.740 --> 04:36.360
+Not even close.
+
+04:36.700 --> 04:42.740
+You have to retain the exact stack of books to the left of the hole, and the exact stack of books to the right of the hole.
+
+04:42.740 --> 04:48.560
+And in Flyxion's paper, this leftover environment is formally defined as a context.
+
+04:48.780 --> 04:49.360
+A context.
+
+04:49.700 --> 04:49.860
+Yeah.
+
+04:50.180 --> 04:56.840
+When you remove B from your list of A, B, C, you are left with two distinct pieces of structural data in memory.
+
+04:57.240 --> 05:04.560
+You have a prefix, which is the sequence containing just A, and you have a suffix, which is the sequence containing just C.
+
+05:04.780 --> 05:07.440
+And those two things together make up the context.
+
+05:07.440 --> 05:15.180
+Exactly. That pair, the prefix, and the suffix together is the exact minimum information required for what the paper calls reconstruction.
+
+05:15.760 --> 05:18.880
+You need both sides to rebuild the original list around the hole.
+
+05:19.260 --> 05:22.960
+Well, that feels pretty intuitive for a flat, simple list of three things.
+
+05:23.100 --> 05:28.360
+You just look at it, grab the middle, and the left side is the prefix, the right side is the suffix. Done.
+
+05:29.120 --> 05:29.820
+Simple enough.
+
+05:30.180 --> 05:32.940
+But software today isn't built on flat lists.
+
+05:32.940 --> 05:37.580
+It relies on massive, nested, incredibly complex data structures.
+
+05:37.900 --> 05:43.440
+We are talking about trees with millions of branches, recursive loops, multidimensional arrays.
+
+05:43.780 --> 05:44.960
+It gets messy fast.
+
+05:45.280 --> 05:50.540
+So how do you systematically define the exact shape of a hole when the data is that complex?
+
+05:51.280 --> 05:55.420
+Like, can you mathematically calculate a context for absolutely any data type?
+
+05:55.420 --> 05:59.840
+That right there is the driving question of the research, and the answer is yes.
+
+06:00.460 --> 06:08.700
+But to perform that calculation, to actually derive the context systematically, we first have to translate computer science into mathematical algebra.
+
+06:09.040 --> 06:10.360
+We have to build a bridge.
+
+06:10.720 --> 06:12.880
+We have to build a new dictionary, really.
+
+06:12.880 --> 06:17.960
+I want to walk through this dictionary carefully, because we are essentially learning a new language here.
+
+06:18.580 --> 06:20.040
+And I don't want to lose you if you're listening.
+
+06:21.060 --> 06:23.540
+Walk us through the basic grammar the paper provides.
+
+06:23.740 --> 06:27.280
+We need to map programming concepts directly to math symbols.
+
+06:27.620 --> 06:30.960
+Okay, so the paper outlines a very elegant type algebra.
+
+06:31.480 --> 06:33.540
+We start with the absolute base states.
+
+06:33.920 --> 06:35.500
+First, we have the number zero.
+
+06:36.300 --> 06:37.640
+Just a standard zero.
+
+06:37.940 --> 06:38.200
+Right.
+
+06:38.640 --> 06:41.620
+In this algebra, zero represents a type with no inhabitants.
+
+06:41.620 --> 06:45.840
+It's a logical impossibility, a state that cannot exist or hold data.
+
+06:46.420 --> 06:49.660
+Wait, what's the practical use of an impossible state?
+
+06:50.080 --> 06:50.940
+Why even define it?
+
+06:51.420 --> 06:57.420
+Well, in programming, it represents a function that never returns, or like an error state that crashes the program entirely.
+
+06:57.920 --> 06:59.120
+It's a structural dead end.
+
+06:59.340 --> 07:00.500
+You can't get data from it.
+
+07:00.660 --> 07:01.480
+Oh, okay.
+
+07:02.100 --> 07:02.660
+That makes sense.
+
+07:02.880 --> 07:04.420
+Next, we have the number one.
+
+07:04.680 --> 07:05.320
+The standard one?
+
+07:05.540 --> 07:06.980
+This represents a unit type.
+
+07:06.980 --> 07:13.600
+It has a single inhabitant, which means it carries a static state, but it contributes no positions for you to select.
+
+07:13.600 --> 07:15.940
+So, zero is empty and impossible.
+
+07:16.360 --> 07:16.680
+Mm-hmm.
+
+07:16.800 --> 07:23.680
+One is a solid block, like a termination point or a null pointer at the very end of a list.
+
+07:23.960 --> 07:24.400
+Exactly.
+
+07:25.020 --> 07:31.460
+It takes up space in the logic, but if I'm looking to pluck a specific piece of data out, I can't grab anything from a one.
+
+07:31.800 --> 07:32.240
+Precisely.
+
+07:32.500 --> 07:36.220
+It is structurally present, but completely invisible to the selection process.
+
+07:36.220 --> 07:40.380
+Now we move to how we combine things, which is where the algebra gets really interesting.
+
+07:40.780 --> 07:42.020
+We use the plus sign.
+
+07:42.500 --> 07:42.800
+Addition.
+
+07:43.280 --> 07:48.740
+Yes, but in our data type algebra, the plus sign represents a strict disjoint choice between two types.
+
+07:48.980 --> 07:54.020
+If we write F plus G, it means your data structure is either an F or a G.
+
+07:54.380 --> 07:55.440
+Wait, I have to stop you there.
+
+07:56.340 --> 07:59.620
+Adding types makes no logical sense to me at first glance.
+
+07:59.860 --> 08:00.840
+I know, it feels weird.
+
+08:01.080 --> 08:01.540
+It does.
+
+08:01.840 --> 08:05.560
+Because in standard math, if I add two and three, I get five.
+
+08:06.220 --> 08:09.000
+I get a completely merged new numerical value.
+
+08:09.500 --> 08:11.840
+The inputs completely lose their individual identity.
+
+08:12.460 --> 08:17.420
+How does a plus sign suddenly translate to a strict OR choice in programming?
+
+08:17.780 --> 08:20.080
+Those feel like totally contradictory concepts.
+
+08:20.460 --> 08:23.480
+It is a very fair point of friction, and a lot of people get stuck there.
+
+08:24.080 --> 08:29.020
+You have to think of it not as arithmetic addition, but as an algebraic sum type.
+
+08:29.480 --> 08:30.860
+Think of it in terms of set theory.
+
+08:30.860 --> 08:31.240
+Okay.
+
+08:31.660 --> 08:32.160
+Set theory.
+
+08:32.700 --> 08:34.680
+If you have a set of apples, we'll call that F,
+
+08:34.680 --> 08:46.900
+F, and a disjoint set of oranges, G, the sum of those sets, F plus G, represents a basket where any single item you pull out is strictly guaranteed to be either an apple or an orange.
+
+08:47.100 --> 08:48.120
+It's a tagged union.
+
+08:48.460 --> 08:49.700
+Ah, okay.
+
+08:50.380 --> 08:51.340
+A tagged union.
+
+08:51.340 --> 08:53.940
+Let me make that concrete for you listening.
+
+08:54.580 --> 08:58.600
+Imagine you are writing software for a vehicle registration system.
+
+08:59.280 --> 09:11.400
+A vehicle entry in your database can be either a car, which has specific data fields for number of doors and trunk space, or a motorcycle, which has completely different specific fields for handlebar type.
+
+09:12.120 --> 09:12.360
+Right.
+
+09:12.680 --> 09:13.380
+They don't mix.
+
+09:13.380 --> 09:21.440
+The plus sign is the mathematical way of saying this block of memory holds one or the other, but absolutely never both simultaneously.
+
+09:21.900 --> 09:23.140
+That is a perfect translation.
+
+09:23.600 --> 09:26.780
+The plus sign is a fork in the structural road.
+
+09:26.780 --> 09:32.620
+Now, the counterpart to that is the asterisk, representing a product or multiplication.
+
+09:33.440 --> 09:34.740
+So if plus means or?
+
+09:35.320 --> 09:36.900
+Multiplication means and.
+
+09:37.460 --> 09:39.940
+F times G represents a pair.
+
+09:40.100 --> 09:44.600
+You have an F and you have a G, sitting adjacent to each other in memory.
+
+09:44.960 --> 09:50.160
+So going back to the vehicle database, a specific car has an engine and a chassis.
+
+09:50.680 --> 09:54.000
+Those two distinct pieces of data exist together at the same time.
+
+09:54.000 --> 09:57.520
+In programming, that's a struct, a record, or a tuple.
+
+09:58.540 --> 09:58.820
+Exactly.
+
+09:59.540 --> 10:06.660
+Okay, so we have zero for impossible, one for a solid unit, plus for or, and multiply for and.
+
+10:06.980 --> 10:09.500
+But what is the actual data we are trying to manipulate?
+
+10:09.720 --> 10:11.820
+What is the literal book we want to pull off the shelf?
+
+10:12.500 --> 10:16.140
+The target data is represented by the capital letter X.
+
+10:16.680 --> 10:18.540
+X is the variable in our algebra.
+
+10:18.540 --> 10:23.000
+It represents the actual occurrences of data that are eligible for selection.
+
+10:23.000 --> 10:28.800
+When we talk about poking a hole in a data structure, we are looking for an X to remove.
+
+10:29.700 --> 10:30.960
+Okay, X is the target.
+
+10:31.060 --> 10:35.040
+Let's put this dictionary to work, because I want to see this calculus in action.
+
+10:35.600 --> 10:41.920
+If X is a single slot for a piece of data, what does a formula like X squared actually mean?
+
+10:42.960 --> 10:46.200
+Because obviously you can't multiply a user ID by itself.
+
+10:46.200 --> 10:48.880
+Let's break down X squared using our new dictionary.
+
+10:49.440 --> 10:53.460
+Algebraically, X squared is just X multiplied by X, X times X.
+
+10:53.920 --> 10:56.480
+We defined multiplication as a product, an and.
+
+10:56.700 --> 11:04.560
+Therefore, X squared simply represents a data structure consisting of two identical data slots sitting side by side, a pair of X's.
+
+11:04.560 --> 11:10.960
+Got it. If X is a single floating point number, X squared is a coordinate pair, like a longitude and latitude.
+
+11:11.420 --> 11:17.380
+It is not a mathematical squaring in the value itself. It is the structural shape of two things paired together.
+
+11:17.780 --> 11:19.800
+Yes, it's the topology of the data.
+
+11:20.320 --> 11:23.160
+Now, here is where Flyxion bridges the gap to calculus.
+
+11:23.300 --> 11:23.640
+Here we go.
+
+11:23.640 --> 11:26.720
+We have our data type, X squared, a pair of slots.
+
+11:27.480 --> 11:31.080
+Let's reach into the traditional calculus toolkit that everyone learns in school.
+
+11:31.500 --> 11:38.000
+If I ask you to take the formal derivative of the function X squared with respect to X, what is the result?
+
+11:38.260 --> 11:42.860
+Okay, the power rule. You bring the exponent down to the front, subtract 1 from the exponent.
+
+11:43.380 --> 11:45.700
+The derivative of X squared is 2X.
+
+11:45.940 --> 11:48.420
+The derivative of X squared is 2X.
+
+11:49.060 --> 11:52.660
+Now write 2X out algebraically without using the multiplier.
+
+11:52.660 --> 11:55.700
+Just addition. It's X plus X.
+
+11:56.000 --> 11:58.520
+The derivative of X squared is X plus X.
+
+11:58.860 --> 12:03.720
+Now, take that mathematical result and translate it back into our programming dictionary.
+
+12:04.240 --> 12:08.900
+What does X plus X actually mean in the physical context of our computer memory?
+
+12:09.620 --> 12:11.440
+Okay, let's trace this carefully.
+
+12:12.720 --> 12:14.020
+X is a data slot.
+
+12:14.860 --> 12:16.560
+The plus sign means or.
+
+12:17.400 --> 12:20.420
+So, X plus X means you have a choice.
+
+12:20.420 --> 12:25.360
+Either an intact X on the left or an intact X on the right.
+
+12:25.360 --> 12:27.960
+Let's connect this back to our primary mission.
+
+12:28.400 --> 12:35.300
+Our goal was to systematically derive the context, the exact shape of the hole left behind when we select one X out of our structure.
+
+12:35.900 --> 12:38.220
+Our starting structure was X squared, a pair.
+
+12:38.220 --> 12:41.640
+I see where this is going, and it is honestly startling.
+
+12:42.460 --> 12:44.640
+Let me walk through the physical mechanics of this.
+
+12:45.460 --> 12:48.500
+We started with a pair of slots, X and X.
+
+12:49.080 --> 12:50.400
+I want to pull one of them out.
+
+12:51.100 --> 12:54.960
+If I poke a hole and pull out the left X, what am I left with in memory?
+
+12:55.480 --> 12:56.620
+You're left with the right one.
+
+12:56.620 --> 12:57.200
+Right.
+
+12:57.600 --> 13:00.280
+I'm left with the intact X on the right.
+
+13:01.180 --> 13:06.160
+Conversely, if I pull out the right X, I am left with the intact X on the left.
+
+13:06.700 --> 13:13.440
+So, my leftover environment, my context, is either the right X or the left X.
+
+13:13.760 --> 13:15.000
+X plus X.
+
+13:15.000 --> 13:25.840
+Taking the traditional mathematical derivative of the pair X squared, literally output the exact two possible structural contexts we can have, which is X plus X.
+
+13:26.560 --> 13:31.360
+The calculus just gave us the precise blueprint for how the data must behave when edited.
+
+13:31.840 --> 13:37.540
+This is the core isomorphism of the paper, and it's vital to grasp that it is not an analogy.
+
+13:37.720 --> 13:38.980
+It is not a cute metaphor.
+
+13:38.980 --> 13:48.220
+The mathematical derivative of the data type's structural formula yields the exact literal structural formula of its one whole context.
+
+13:48.840 --> 13:50.740
+That works flawlessly for a simple pair.
+
+13:51.100 --> 13:53.380
+But X squared is like day one of a calculus class.
+
+13:53.620 --> 13:54.340
+How does this scale?
+
+13:54.760 --> 13:58.220
+If this is a universal truth, it has to apply to the foundational rules of calculus.
+
+13:58.740 --> 14:01.060
+How does it handle the sum rule or the product rule?
+
+14:01.540 --> 14:02.500
+It maps perfectly.
+
+14:02.880 --> 14:04.200
+Let's look at the sum rule first.
+
+14:04.200 --> 14:10.240
+In calculus, the derivative of F plus G is the derivative of F plus the derivative of G.
+
+14:10.600 --> 14:14.860
+Or mathematically, F plus G prime equals F prime plus G prime.
+
+14:15.320 --> 14:19.780
+Translating that, F plus G means our data is a choice, a car or a motorcycle.
+
+14:20.520 --> 14:25.020
+So, if we want to poke a hole in that vehicle data, the rule says the context is F prime plus G prime.
+
+14:25.380 --> 14:30.060
+The context is either a hole inside a car structure or a hole inside a motorcycle structure.
+
+14:30.540 --> 14:31.720
+That tracks logically.
+
+14:31.720 --> 14:34.940
+If the original data was a car, the hole obviously has to be in the car.
+
+14:35.560 --> 14:37.200
+The sum rule is very straightforward.
+
+14:37.620 --> 14:42.960
+The product rule is where the descriptive power of this mathematical mapping truly shows its utility for software engineering.
+
+14:43.420 --> 14:45.400
+Do you recall the formula for the product rule?
+
+14:45.860 --> 14:46.560
+I do, yeah.
+
+14:46.980 --> 14:57.220
+The derivative of F times G is the derivative of F times G plus F times the derivative of G.
+
+14:57.820 --> 15:00.720
+So, F prime times G plus F times G prime.
+
+15:00.720 --> 15:13.320
+Now, let's interpret that formula not as a math problem on a chalkboard, but as a set of strict logical instructions for a computer navigating a pair of massive data structures in RAM, F and G.
+
+15:13.660 --> 15:13.900
+Okay.
+
+15:14.440 --> 15:16.760
+Let me break down the physical memory mechanics of this.
+
+15:17.720 --> 15:22.120
+Imagine F and G are two very large blocks of data sitting next to each other.
+
+15:22.120 --> 15:27.480
+Maybe F is a massive text document, and G is a high-res image attached to it.
+
+15:28.100 --> 15:28.880
+They are paired.
+
+15:29.380 --> 15:30.120
+F times G.
+
+15:30.340 --> 15:30.580
+Right.
+
+15:30.720 --> 15:31.460
+They exist together.
+
+15:31.840 --> 15:35.000
+I need to dive in and edit one specific byte of data.
+
+15:35.460 --> 15:36.580
+I'm making one whole.
+
+15:37.440 --> 15:39.100
+How does the computer handle the context?
+
+15:39.800 --> 15:40.720
+Well, look at the formula.
+
+15:41.120 --> 15:43.500
+F prime times G plus F times G prime.
+
+15:44.160 --> 15:47.320
+The plus sign in the middle is the or choice.
+
+15:47.700 --> 15:48.140
+Exactly.
+
+15:49.180 --> 15:50.240
+Choice one, the left side.
+
+15:51.000 --> 15:53.620
+I edit a byte inside the text document, F.
+
+15:54.400 --> 15:55.920
+What does my memory need to preserve?
+
+15:56.260 --> 15:58.580
+It needs to hold the text document with the hole in it.
+
+15:58.800 --> 15:59.640
+That's F prime.
+
+16:00.400 --> 16:04.100
+And it has to keep the entire attached image completely intact in memory.
+
+16:04.620 --> 16:05.420
+That's the G.
+
+16:05.980 --> 16:07.820
+So, we get F prime times G.
+
+16:09.260 --> 16:10.180
+And choice two?
+
+16:10.740 --> 16:11.840
+Choice two, the right side.
+
+16:11.840 --> 16:14.200
+I edit a pixel in the image.
+
+16:14.660 --> 16:15.040
+G.
+
+16:15.940 --> 16:17.000
+What does the memory do?
+
+16:17.480 --> 16:21.060
+It preserves the entire text document perfectly intact, which is F.
+
+16:21.520 --> 16:24.960
+And it holds the image with a missing pixel, which is G prime.
+
+16:25.260 --> 16:26.440
+So, we get F times G prime.
+
+16:27.540 --> 16:32.760
+The calculus formula perfectly describes every single valid state the computer's memory can be in
+
+16:32.760 --> 16:35.020
+after one piece of data is selected.
+
+16:35.360 --> 16:37.560
+And the paper emphasizes a major claim here.
+
+16:37.560 --> 16:43.220
+This familiar differentiation rule is actively specifying what a program must do during reconstruction.
+
+16:43.780 --> 16:44.660
+It's writing the color.
+
+16:45.220 --> 16:46.060
+Basically, yeah.
+
+16:46.480 --> 16:48.880
+The plus sign in the middle of the formula acts as a tag.
+
+16:49.360 --> 16:52.700
+It tells the software which side, the left structure, or the right structure, is supposed
+
+16:52.700 --> 16:54.180
+to receive the replacement data.
+
+16:54.720 --> 16:58.320
+Whichever factor doesn't have the prime, the intact factor, just supplies the rest of
+
+16:58.320 --> 16:59.380
+the unedited structure.
+
+17:00.000 --> 17:03.740
+The derivative literally writes the if-else logic for the software.
+
+17:03.740 --> 17:06.820
+The calculus rule isn't just describing the shape.
+
+17:07.180 --> 17:11.820
+It is giving you the exact conditional logic required to manage the memory safely.
+
+17:12.200 --> 17:13.900
+Which is incredibly powerful.
+
+17:14.300 --> 17:15.480
+But let's push this further.
+
+17:16.160 --> 17:20.160
+So far, we've only dealt with finite fixed structures, pairs, and choices.
+
+17:20.720 --> 17:24.840
+But the real power of modern software comes from recursive data.
+
+17:25.200 --> 17:26.180
+Ah, recursion.
+
+17:26.480 --> 17:31.620
+Data that loops structures that can grow dynamically in memory, like a list where you can keep clicking
+
+17:31.620 --> 17:33.380
+add item indefinitely.
+
+17:33.860 --> 17:37.600
+If a structure doesn't have a fixed size, how can you possibly take its derivative?
+
+17:38.140 --> 17:40.240
+This is the critical threshold of Flyxion's research.
+
+17:40.440 --> 17:43.520
+We are moving into recursive types, specifically the list.
+
+17:43.920 --> 17:47.480
+We have to define a list mathematically before we can differentiate it.
+
+17:47.700 --> 17:52.040
+So how do we describe a finite list of elements, where each element is of type x?
+
+17:52.260 --> 17:53.200
+How do we write that out?
+
+17:53.200 --> 17:54.840
+We use a recursive equation.
+
+17:55.220 --> 17:57.880
+L of x equals 1 plus x times L of x.
+
+17:57.880 --> 18:02.080
+Let's translate this equation together for the listener, because understanding this is
+
+18:02.080 --> 18:03.320
+crucial to the whole concept.
+
+18:04.060 --> 18:05.500
+L of x is our list.
+
+18:06.300 --> 18:08.500
+The equal sign means is defined as.
+
+18:08.980 --> 18:12.080
+So, a list is defined as 1.
+
+18:12.640 --> 18:16.640
+And we remember 1 means a solid unit, an empty termination state.
+
+18:16.880 --> 18:17.880
+Right, the end of the line.
+
+18:18.040 --> 18:19.940
+Then we have the plus sign, which means or.
+
+18:19.940 --> 18:23.240
+Then we have x times L of x.
+
+18:23.660 --> 18:24.980
+X is our target data slot.
+
+18:25.320 --> 18:27.880
+The asterisk is and, a pair.
+
+18:28.640 --> 18:30.840
+And L of x is another list.
+
+18:31.060 --> 18:31.300
+Yes.
+
+18:32.220 --> 18:33.320
+Reading it in plain English.
+
+18:34.200 --> 18:39.860
+A list is either an empty termination point, or it is a single piece of data paired with
+
+18:39.860 --> 18:40.680
+another list.
+
+18:41.080 --> 18:45.560
+This is stunning, because that is exactly how a computer builds a linked list in RAM.
+
+18:46.080 --> 18:47.980
+You don't just dump all the items in a bucket.
+
+18:48.220 --> 18:49.000
+No, you chain them.
+
+18:49.000 --> 18:54.040
+You create a node with a value, x, and that node holds a memory pointer directed at the
+
+18:54.040 --> 18:54.580
+next node.
+
+18:55.120 --> 18:58.100
+That next node is the start of the rest of the list.
+
+18:58.700 --> 19:02.980
+And at the very end, the last pointer just points to a null space, which is our 1.
+
+19:03.280 --> 19:08.140
+You've perfectly captured the recursive physical reality of a linked list.
+
+19:08.940 --> 19:11.200
+Now, we perform the mathematical operation.
+
+19:11.460 --> 19:15.660
+We differentiate this entire recursive equation with respect to x.
+
+19:15.660 --> 19:18.260
+We just apply the rules we already established.
+
+19:18.420 --> 19:18.620
+Okay.
+
+19:18.820 --> 19:19.660
+Let's walk through it.
+
+19:20.280 --> 19:23.040
+The derivative of L of x becomes L prime of x.
+
+19:23.320 --> 19:28.540
+The derivative of 1 is 0, because an empty termination state has no x to select.
+
+19:29.000 --> 19:30.180
+Then we hit the plus sign.
+
+19:30.740 --> 19:32.880
+Then we have x times L of x.
+
+19:33.380 --> 19:34.720
+This is a product, an and.
+
+19:34.720 --> 19:40.640
+So we must use the product rule we just talked about, f prime times g plus f times g prime.
+
+19:40.640 --> 19:44.800
+Okay, let's work through the product rule on x times L of x.
+
+19:45.320 --> 19:48.720
+Our f is the single piece of data, x.
+
+19:49.260 --> 19:52.420
+Our g is the rest of the list, L of x.
+
+19:52.960 --> 19:54.400
+First part of the product rule.
+
+19:55.060 --> 19:57.880
+The derivative of f times g intact.
+
+19:58.620 --> 20:01.580
+The derivative of x is just 1, a single whole.
+
+20:02.140 --> 20:04.360
+1 times L of x is just L of x.
+
+20:04.680 --> 20:07.620
+So the first part of our result is L of x.
+
+20:07.980 --> 20:08.180
+Good.
+
+20:08.420 --> 20:09.340
+Now the second half.
+
+20:09.340 --> 20:14.060
+Second part of the product rule, f intact times the derivative of g.
+
+20:14.660 --> 20:19.480
+That means x is left alone, and we multiply it by the derivative of the rest of the list,
+
+20:19.560 --> 20:21.180
+which is L prime of x.
+
+20:21.440 --> 20:23.840
+So we get x times L prime of x.
+
+20:24.400 --> 20:30.100
+Putting the whole equation back together, the derivative of our list is L prime of x equals
+
+20:30.100 --> 20:34.440
+0 plus L of x plus x times L prime of x.
+
+20:34.740 --> 20:36.100
+And we can drop the 0.
+
+20:36.440 --> 20:36.740
+Right.
+
+20:36.740 --> 20:42.800
+Drop the 0, leaving us with L prime of x equals L of x plus x times L prime of x.
+
+20:42.800 --> 20:47.640
+Now let's translate that final mathematical derivative back into operational English.
+
+20:47.640 --> 20:50.900
+What is this equation actively telling a computer to do?
+
+20:51.180 --> 20:53.020
+Let's read it left to right as an algorithm.
+
+20:53.860 --> 20:57.820
+L prime of x means I am currently searching for a hole in a list.
+
+20:58.480 --> 21:00.900
+The equal sign means here are my options.
+
+21:01.520 --> 21:03.960
+First we have L of x on the left side of the plus.
+
+21:04.180 --> 21:05.080
+What does that signify?
+
+21:05.460 --> 21:06.920
+It means I found the hole immediately.
+
+21:06.920 --> 21:11.380
+I poked a hole in the very first element, the head of the list, and what remains.
+
+21:12.280 --> 21:16.260
+I'm left with L of x, the entire rest of the list perfectly intact.
+
+21:16.680 --> 21:17.320
+The tail.
+
+21:17.580 --> 21:18.020
+Exactly.
+
+21:18.420 --> 21:20.900
+But we have the plus sign, the or.
+
+21:21.320 --> 21:24.440
+So, or, I didn't find the hole in the head.
+
+21:24.980 --> 21:26.420
+I look at the right side of the plus.
+
+21:27.200 --> 21:28.940
+x times L prime of x.
+
+21:29.720 --> 21:33.140
+This means I keep the current head of the list completely intact in memory.
+
+21:33.500 --> 21:34.300
+That's the x.
+
+21:34.980 --> 21:37.900
+And I continue my search for the hole in the rest of the list.
+
+21:38.100 --> 21:39.560
+That's the L prime of x.
+
+21:40.180 --> 21:42.000
+This isn't just a physical description.
+
+21:42.660 --> 21:47.620
+This equation is literally the step-by-step software algorithm for traversing a linked list.
+
+21:48.140 --> 21:48.640
+Check the head.
+
+21:48.920 --> 21:51.300
+If it's not there, save the head and check the tail.
+
+21:51.540 --> 21:55.720
+It is the algorithmic traversal mapped perfectly to algebra.
+
+21:55.720 --> 21:59.800
+If the selected position is the head, the retained data is the tail.
+
+22:00.120 --> 22:05.660
+If the selected position is further down, you preserve the head intact and recurse into the tail.
+
+22:06.120 --> 22:08.720
+But consider the reality of the data structure.
+
+22:09.240 --> 22:13.800
+Because this list is finite, this recursive search cannot continue infinitely.
+
+22:14.160 --> 22:15.320
+It must resolve at some point.
+
+22:15.560 --> 22:15.660
+Right.
+
+22:16.680 --> 22:20.700
+Eventually, the computer finds the specific x it wants to select.
+
+22:21.220 --> 22:25.060
+It makes the hole, and the recursive search just terminates.
+
+22:25.060 --> 22:30.140
+And when it terminates, look at what has accumulated in the computer's memory during the search.
+
+22:30.940 --> 22:37.720
+Every time the algorithm moves past an element without selecting it, it preserves an intact x on the left side of the operation.
+
+22:38.380 --> 22:41.720
+It is effectively building a pile of bypassed elements behind it.
+
+22:41.840 --> 22:43.700
+Like a trail of breadcrumbs.
+
+22:44.080 --> 22:44.560
+Exactly.
+
+22:45.340 --> 22:49.840
+These retained heads, read in chronological order, form a new list of their own.
+
+22:50.120 --> 22:50.840
+They form the prefix.
+
+22:50.840 --> 22:54.880
+And when you hit your target and stop, what remains in front of you?
+
+22:55.420 --> 22:57.860
+The remaining intact portion of the original list.
+
+22:58.540 --> 22:59.360
+The suffix.
+
+22:59.360 --> 23:10.700
+So, after the mathematical recursion fully plays out, the memory holds a list of the elements you passed, the prefix, and the list of elements you haven't touched yet, the suffix.
+
+23:11.320 --> 23:19.060
+Therefore, mathematically, the derivative of a list, L prime of x, resolves perfectly to L of x times L of x.
+
+23:19.060 --> 23:19.980
+Two lists.
+
+23:20.520 --> 23:22.600
+A prefix list and a suffix list.
+
+23:23.200 --> 23:24.620
+Or simply L squared.
+
+23:25.420 --> 23:26.340
+L squared.
+
+23:26.920 --> 23:31.740
+The context of a whole in a one-dimensional list mathematically reduces to a pair of lists.
+
+23:32.200 --> 23:35.220
+The stuff before the whole and the stuff after the whole.
+
+23:35.760 --> 23:36.380
+It's beautiful.
+
+23:37.020 --> 23:37.540
+It is.
+
+23:37.540 --> 23:44.900
+I want to pause and really reflect on why Flyxion dedicates so much space in the paper to proving this specifically.
+
+23:45.740 --> 23:54.780
+Because when we started this discussion, we talked about the prefix and suffix saving the books to the left and right of the whole as if it were just a clever engineering solution.
+
+23:55.100 --> 23:55.180
+Right.
+
+23:55.280 --> 23:55.880
+Like a hack.
+
+23:56.260 --> 23:56.440
+Yeah.
+
+23:56.800 --> 24:03.580
+It felt like an early programmer looked at a memory leak and thought, oh, if I just save the left side and the right side, the list won't collapse.
+
+24:04.140 --> 24:05.120
+It felt subjective.
+
+24:05.320 --> 24:06.780
+An invention of pure convenience.
+
+24:06.780 --> 24:11.060
+But this derivation proves that the programmer didn't invent anything.
+
+24:11.380 --> 24:11.740
+Not at all.
+
+24:12.580 --> 24:17.840
+The prefix-suffix context is mathematically mandated by the topological definition of the list.
+
+24:18.720 --> 24:23.800
+The math proves that L squared is the fundamental unavoidable truth of the data structure.
+
+24:24.380 --> 24:28.220
+The programmer was just discovering the physical constraints dictated by the algebra.
+
+24:28.860 --> 24:31.340
+That is the philosophical core of Flyxion's work.
+
+24:31.540 --> 24:35.000
+Software engineering isn't just inventing arbitrary logic to get things to work.
+
+24:35.000 --> 24:37.400
+It's discovering the geometric laws of data.
+
+24:38.120 --> 24:39.280
+That's a great way to put it.
+
+24:39.280 --> 24:42.600
+Now, a list is beautiful, but it is strictly one-dimensional.
+
+24:42.980 --> 24:44.960
+You just keep moving forward, node to node.
+
+24:45.640 --> 24:47.740
+But look at the file system on your computer right now.
+
+24:47.880 --> 24:49.000
+It's not a flat list.
+
+24:49.160 --> 24:51.280
+It's folders inside of folders inside of folders.
+
+24:51.840 --> 24:53.500
+Look at how a web page renders.
+
+24:53.640 --> 24:56.660
+It's a massive branching document object model.
+
+24:56.660 --> 24:57.640
+Everything is a tree.
+
+24:57.640 --> 24:58.600
+Everything.
+
+24:59.400 --> 25:02.540
+So what happens to our elegant algebra when the data branches?
+
+25:03.280 --> 25:09.120
+Does this simple plus-and-multiply system break down when we introduce a complex tree structure?
+
+25:09.520 --> 25:11.860
+Because navigating a straight list is simple.
+
+25:12.180 --> 25:12.980
+You just go forward.
+
+25:13.760 --> 25:19.220
+Navigating a massive branching tree, where every single point offers multiple diverging paths,
+
+25:19.680 --> 25:21.280
+sounds like an algorithmic nightmare.
+
+25:21.780 --> 25:24.280
+How does calculus handle navigating a maze?
+
+25:24.280 --> 25:29.980
+To navigate a maze, we need the heaviest tool in the calculus toolkit, the chain rule.
+
+25:30.100 --> 25:30.620
+The chain rule.
+
+25:31.020 --> 25:35.960
+The chain rule is designed specifically for nested functions, functions inside of functions.
+
+25:36.500 --> 25:40.620
+In traditional calculus, if you want the derivative of f of g of x,
+
+25:40.800 --> 25:43.660
+written as f parenthesis g parenthesis x,
+
+25:44.540 --> 25:47.940
+the rule dictates you take the derivative of the outer function,
+
+25:48.260 --> 25:52.560
+evaluated at the inner function, multiplied by the derivative of the inner function.
+
+25:52.560 --> 25:58.380
+So mathematically, f prime of g of x times g prime of x.
+
+25:58.480 --> 25:58.900
+Exactly.
+
+25:59.720 --> 26:01.420
+Let's ground this with an analogy,
+
+26:01.980 --> 26:05.840
+because nested functions can get really abstract really quickly.
+
+26:06.500 --> 26:11.740
+Think of zooming into a fractal, or like the movie Inception, dreams inside of dreams.
+
+26:11.880 --> 26:12.580
+Great analogy.
+
+26:12.580 --> 26:17.040
+Imagine you were trying to find a specific text file on your computer,
+
+26:17.380 --> 26:22.460
+but it's buried deep inside a project folder, which is compressed inside a zip file,
+
+26:22.880 --> 26:24.480
+which is inside your downloads folder.
+
+26:25.080 --> 26:29.200
+That is a nested data type, f of g of x.
+
+26:29.880 --> 26:34.860
+To find that specific text file, to poke our hole deep inside this nested structure,
+
+26:35.420 --> 26:38.420
+the computer can't just magically teleport to the data.
+
+26:38.820 --> 26:40.720
+It has to physically navigate the layers.
+
+26:40.720 --> 26:42.400
+Layer by layer.
+
+26:43.020 --> 26:45.700
+First, you have to navigate the outer structure.
+
+26:46.240 --> 26:48.080
+You have to find the write and zip file and open it.
+
+26:48.520 --> 26:52.200
+When you open it, your memory leaves behind an outer context,
+
+26:52.460 --> 26:55.720
+all the other files and folders in the downloads directory that you didn't open.
+
+26:56.220 --> 26:58.860
+That outer context is the f prime.
+
+26:59.500 --> 26:59.720
+Right.
+
+27:00.320 --> 27:02.860
+Then you dive into the inner structure, the g.
+
+27:02.860 --> 27:08.060
+You find the specific text file inside the zip, leaving behind an inner context,
+
+27:08.560 --> 27:10.660
+the other files inside the zip that you ignored.
+
+27:11.340 --> 27:12.400
+That's the g prime.
+
+27:13.180 --> 27:17.300
+Because they are nested, when you want to back out and reconstruct the file path,
+
+27:17.480 --> 27:19.920
+you must do it in exact reverse order.
+
+27:20.700 --> 27:24.780
+You have to seal up the inner folder first, then you seal up the outer folder.
+
+27:24.780 --> 27:30.000
+And the necessity of reverse order reconstruction is exactly what the chain rule captures
+
+27:30.000 --> 27:31.700
+with its multiplication of contexts.
+
+27:32.500 --> 27:38.260
+Now, let's apply this mathematical nesting to a highly specific, widely used branching structure,
+
+27:38.660 --> 27:39.720
+a binary tree.
+
+27:40.040 --> 27:40.940
+Okay, let's do it.
+
+27:41.340 --> 27:44.800
+We define our binary tree recursively, similarly to the list.
+
+27:44.800 --> 27:52.260
+First, a tree, t of x, is defined as t of x equals x plus t of x times t of x.
+
+27:52.980 --> 27:57.780
+Translating the algebra again, t of x is our tree, the pluses are or.
+
+27:58.200 --> 28:02.700
+So a binary tree is either x, which means it's just a single piece of data,
+
+28:03.160 --> 28:04.620
+a leaf at the very end of a branch.
+
+28:04.900 --> 28:05.520
+The dead end.
+
+28:05.760 --> 28:05.960
+Right.
+
+28:06.360 --> 28:09.160
+Or it's t of x times t of x.
+
+28:09.500 --> 28:13.340
+It's a pair of two other trees, a left branch and a right branch.
+
+28:13.340 --> 28:17.100
+That perfectly describes a binary tree in computer science.
+
+28:17.360 --> 28:20.080
+Every node is either a dead end leaf containing data,
+
+28:20.600 --> 28:24.040
+or a fork in the road, splitting into a left path and a right path.
+
+28:24.520 --> 28:25.060
+Exactly.
+
+28:25.760 --> 28:28.320
+When we differentiate this recursive tree equation,
+
+28:28.900 --> 28:31.640
+we must apply both the chain rule for the nesting
+
+28:31.640 --> 28:36.560
+and what Flyxion outlines as proposition one, the fixed point rule.
+
+28:37.160 --> 28:40.140
+The mathematical derivative yields something far more complex
+
+28:40.140 --> 28:42.480
+than the simple prefix suffix of a list.
+
+28:42.480 --> 28:46.880
+It yields a unit case, which represents finally arriving at the leaf
+
+28:46.880 --> 28:50.620
+you were searching for, along with a series of structural cases
+
+28:50.620 --> 28:52.220
+that act as breadcrumbs.
+
+28:52.340 --> 28:52.780
+Breadcrumbs.
+
+28:53.000 --> 28:53.940
+Think back to the maze.
+
+28:54.540 --> 28:55.980
+When you take a left turn at a fork,
+
+28:56.440 --> 29:00.340
+what information must you retain to be able to rebuild the maze behind you
+
+29:00.340 --> 29:01.020
+when you leave?
+
+29:01.760 --> 29:04.420
+Simply remembering, I went left, is insufficient.
+
+29:04.860 --> 29:06.680
+Let's dig into the memory mechanics of that,
+
+29:07.300 --> 29:09.640
+because this is where the theory actually hits the metal.
+
+29:09.640 --> 29:13.640
+A path in a data structure isn't just a list of textual directions
+
+29:13.640 --> 29:16.060
+on a piece of paper, like go left, then go right.
+
+29:16.480 --> 29:17.680
+No, it's physical memory.
+
+29:17.900 --> 29:18.100
+Right.
+
+29:18.600 --> 29:22.520
+If you just have textual directions and you pull the data out,
+
+29:23.020 --> 29:25.780
+the unreferenced branches of the tree just get swept away
+
+29:25.780 --> 29:27.200
+by the computer's garbage collector.
+
+29:27.740 --> 29:29.320
+The whole tree collapses into nothing.
+
+29:29.320 --> 29:33.700
+In a physical data context, the path you record must carry
+
+29:33.700 --> 29:37.380
+the actual memory addresses and the physical data
+
+29:37.380 --> 29:39.340
+of the branches you bypassed.
+
+29:39.700 --> 29:40.020
+Exactly.
+
+29:40.380 --> 29:43.400
+If I arrive at a fork and I go down the left branch,
+
+29:43.880 --> 29:46.960
+my context has to store the fact that I went left,
+
+29:47.500 --> 29:50.420
+and it has to literally hold onto the memory pointer
+
+29:50.420 --> 29:52.560
+for the entire right branch of the tree.
+
+29:52.560 --> 29:56.580
+I have to physically drag the unexplored sibling data
+
+29:56.580 --> 29:57.880
+with me down the hole.
+
+29:58.420 --> 30:00.480
+That way, when I'm done editing the leaf
+
+30:00.480 --> 30:02.600
+and I'm walking backward out of the maze,
+
+30:02.780 --> 30:06.080
+I can snap that massive bright branch back onto the node
+
+30:06.080 --> 30:06.780
+as I pass it.
+
+30:07.320 --> 30:09.880
+You are beautifully articulating the physical reality
+
+30:09.880 --> 30:11.160
+of the fixed point rule.
+
+30:11.800 --> 30:14.320
+For any recursive type, the mathematical derivative
+
+30:14.320 --> 30:16.980
+strictly factors into two distinct components.
+
+30:17.180 --> 30:20.780
+It yields a local factor paired with a stack of steps.
+
+30:20.780 --> 30:22.800
+A local factor and a stack.
+
+30:23.100 --> 30:23.380
+Yes.
+
+30:23.860 --> 30:25.880
+The local factor is the specific node
+
+30:25.880 --> 30:27.800
+where you finally end up making the hole.
+
+30:28.440 --> 30:31.040
+A stack of steps is the path you took to get there.
+
+30:31.640 --> 30:33.040
+But as you rightly deduced,
+
+30:33.280 --> 30:35.380
+every single step recorded in that stack
+
+30:35.380 --> 30:38.140
+contains the physical sibling data you bypassed.
+
+30:38.420 --> 30:40.420
+It's an ordered list of layer contexts
+
+30:40.420 --> 30:41.980
+radiating outward from the hole.
+
+30:42.360 --> 30:44.860
+A local factor and a stack of steps.
+
+30:45.820 --> 30:48.400
+It's like you're exploring a cave system.
+
+30:48.400 --> 30:50.820
+You have your current physical location,
+
+30:51.360 --> 30:52.100
+the local factor,
+
+30:52.600 --> 30:55.360
+and you have a massive backpack, the stack.
+
+30:56.120 --> 30:58.080
+Every time you pass a diverging tunnel,
+
+30:58.560 --> 31:00.800
+you take the entire alternate tunnel system,
+
+31:01.340 --> 31:01.940
+shrink it down,
+
+31:02.260 --> 31:03.420
+and shove it into your backpack.
+
+31:03.780 --> 31:04.740
+That's exactly it.
+
+31:05.060 --> 31:06.840
+When you want to go back to the surface,
+
+31:07.500 --> 31:09.720
+you pull the alternate tunnels out of your backpack
+
+31:09.720 --> 31:11.980
+one by one in strict reverse order
+
+31:11.980 --> 31:14.400
+and stitch the cave system back together
+
+31:14.400 --> 31:15.600
+behind you on your way up.
+
+31:15.600 --> 31:18.180
+And the mathematics perfectly describes
+
+31:18.180 --> 31:20.400
+that memory management of a branching structure.
+
+31:21.720 --> 31:23.220
+But I have to play skeptic for a minute here.
+
+31:23.800 --> 31:26.760
+We have derived these flawless algebraic formulas
+
+31:26.760 --> 31:30.820
+that dictate how to navigate and rebuild complex data.
+
+31:30.940 --> 31:33.400
+But is this actually used?
+
+31:33.780 --> 31:34.600
+You mean in practice?
+
+31:34.940 --> 31:35.120
+Yeah.
+
+31:35.360 --> 31:37.240
+Like, are programmers sitting at their desks
+
+31:37.240 --> 31:39.200
+doing calculus on whiteboards
+
+31:39.200 --> 31:40.660
+before they write a database query?
+
+31:40.660 --> 31:43.660
+Is there a real machine that utilizes this?
+
+31:43.740 --> 31:46.380
+Or is this just a purely academic thought experiment?
+
+31:46.940 --> 31:48.640
+Oh, it is intensely practical.
+
+31:48.940 --> 31:52.160
+And it is the foundation of specific architectures
+
+31:52.160 --> 31:52.980
+running right now.
+
+31:53.180 --> 31:54.800
+This brings us to the bridge
+
+31:54.800 --> 31:57.180
+between theoretical math and functional programming.
+
+31:58.420 --> 32:00.360
+Flyxion's paper specifically highlights
+
+32:00.360 --> 32:01.980
+concrete implementations,
+
+32:02.160 --> 32:03.840
+the most prominent being a data structure
+
+32:03.840 --> 32:04.900
+known as the zipper,
+
+32:05.320 --> 32:08.280
+which was introduced by Girard Huet in 1997.
+
+32:09.100 --> 32:09.720
+The zipper.
+
+32:09.720 --> 32:12.300
+The zipper is the practical,
+
+32:13.060 --> 32:15.720
+executable embodiment of the calculus we just derived.
+
+32:16.160 --> 32:17.840
+It's a great evocative name.
+
+32:18.240 --> 32:19.880
+It sounds like exactly what it does,
+
+32:19.980 --> 32:21.720
+unzipping a structure to get to the middle
+
+32:21.720 --> 32:23.740
+and zipping it back up to close it.
+
+32:24.320 --> 32:26.460
+How does a zipper physically operate
+
+32:26.460 --> 32:27.380
+in a computer's memory?
+
+32:28.160 --> 32:30.220
+A zipper is the programmatic realization
+
+32:30.220 --> 32:31.100
+of our derivative.
+
+32:31.500 --> 32:34.100
+It is literally defined as a context
+
+32:34.100 --> 32:35.800
+paired with a specific value.
+
+32:35.800 --> 32:39.280
+It is the hole plus the piece of data
+
+32:39.280 --> 32:40.860
+that currently occupies the hole.
+
+32:41.700 --> 32:43.920
+The mathematical formulas we just unpacked
+
+32:43.920 --> 32:45.760
+map directly to the core functions
+
+32:45.760 --> 32:47.880
+a programmer writes to operate a zipper.
+
+32:48.440 --> 32:51.280
+The most fundamental of these is the plug function.
+
+32:51.280 --> 32:52.340
+The plug function.
+
+32:52.600 --> 32:52.780
+Right.
+
+32:53.160 --> 32:55.200
+The plug function takes a new replacement value,
+
+32:55.360 --> 32:56.160
+your new X,
+
+32:56.840 --> 32:58.960
+and it takes the stored context,
+
+32:59.240 --> 33:00.640
+your prefix, suffix,
+
+33:00.720 --> 33:02.180
+or your stack of tree branches.
+
+33:02.860 --> 33:05.540
+It inserts the new value into the focus point,
+
+33:05.820 --> 33:08.740
+and then it systematically evaluates the stack,
+
+33:09.080 --> 33:12.020
+folding all the retained sibling context back around it,
+
+33:12.120 --> 33:13.040
+layer by layer,
+
+33:13.600 --> 33:16.280
+perfectly reconstructing the entire original data structure.
+
+33:16.280 --> 33:17.780
+Let's talk about why the zipper
+
+33:17.780 --> 33:20.160
+was such a revolutionary concept in 1997,
+
+33:20.800 --> 33:22.880
+particularly regarding memory efficiency,
+
+33:23.340 --> 33:24.800
+because understanding the why
+
+33:24.800 --> 33:26.640
+makes the math even more impressive.
+
+33:27.060 --> 33:27.560
+Please do.
+
+33:27.740 --> 33:29.500
+Let's say you have a list of a million items
+
+33:29.500 --> 33:31.640
+in an immutable programming language.
+
+33:32.060 --> 33:34.320
+Immutable means you absolutely cannot change
+
+33:34.320 --> 33:35.640
+a piece of data once it's created.
+
+33:36.060 --> 33:38.460
+If you want to change element 500,000,
+
+33:38.980 --> 33:40.020
+you can't just overwrite it.
+
+33:40.380 --> 33:43.040
+The computer literally has to copy the entire list,
+
+33:43.140 --> 33:44.160
+all one million items,
+
+33:44.160 --> 33:46.140
+into a brand new location in memory
+
+33:46.140 --> 33:48.820
+just to swap out that one single element.
+
+33:49.200 --> 33:50.660
+It's incredibly inefficient.
+
+33:51.020 --> 33:53.380
+It takes a massive amount of processing power and time.
+
+33:53.920 --> 33:56.880
+It's what computer scientists call an O of N operation.
+
+33:57.540 --> 33:59.320
+But if you use a zipper structure,
+
+33:59.700 --> 34:00.980
+the paradigm completely flips.
+
+34:01.800 --> 34:02.940
+A zipper moves its focus
+
+34:02.940 --> 34:05.280
+by physically reversing the pointers in memory.
+
+34:05.480 --> 34:06.220
+Right, locally.
+
+34:06.820 --> 34:07.020
+Yeah.
+
+34:07.680 --> 34:09.820
+If I'm focused on element 500,000,
+
+34:09.820 --> 34:14.020
+I have a prefix of 499,999 items
+
+34:14.020 --> 34:15.980
+and a suffix of 500,000 items.
+
+34:16.580 --> 34:18.920
+If I want to move my focus one step to the right,
+
+34:19.220 --> 34:20.860
+to element 500,001,
+
+34:21.100 --> 34:23.280
+the computer doesn't copy the whole list.
+
+34:23.940 --> 34:25.960
+It simply takes the head off the suffix,
+
+34:26.500 --> 34:27.480
+makes it the new focus,
+
+34:27.700 --> 34:29.800
+and pushes the old focus onto the end of the prefix.
+
+34:30.560 --> 34:31.660
+It's just swapping two pointers.
+
+34:32.200 --> 34:33.920
+It turns a massive copying job
+
+34:33.920 --> 34:37.620
+into a localized, constant-time, O of 1 operation.
+
+34:37.820 --> 34:38.820
+It's lightning fast.
+
+34:38.820 --> 34:40.740
+The efficiency gains are massive.
+
+34:41.320 --> 34:43.040
+The calculus specifies exactly
+
+34:43.040 --> 34:46.040
+what minimal information must be preserved in the context.
+
+34:46.540 --> 34:49.280
+And the software engineer implements that context as a zipper
+
+34:49.280 --> 34:51.800
+to make local movements incredibly cheap
+
+34:51.800 --> 34:53.200
+in terms of memory overhead.
+
+34:53.940 --> 34:55.600
+And Flyxion proves the direct linkage
+
+34:55.600 --> 34:57.020
+between the math and the code.
+
+34:57.760 --> 34:59.380
+The appendix of the paper actually contains
+
+34:59.380 --> 35:01.540
+executable code written in Lean 4.
+
+35:01.880 --> 35:03.480
+Wait, I need to interrupt here.
+
+35:03.480 --> 35:05.860
+For the listener who is familiar with languages
+
+35:05.860 --> 35:08.600
+like Python, JavaScript, or C++,
+
+35:09.280 --> 35:11.940
+what makes Lean 4 different?
+
+35:12.400 --> 35:13.640
+You mentioned earlier to me
+
+35:13.640 --> 35:16.080
+that it's a dependently typed programming language
+
+35:16.080 --> 35:17.500
+in theorem prover.
+
+35:17.920 --> 35:18.340
+That's right.
+
+35:18.580 --> 35:20.460
+What does a theorem prover actually do?
+
+35:20.520 --> 35:21.380
+Is it writing code,
+
+35:21.440 --> 35:23.200
+or is it checking a math test?
+
+35:23.560 --> 35:25.120
+It's doing both simultaneously,
+
+35:25.320 --> 35:27.180
+which is the sheer beauty of it.
+
+35:27.500 --> 35:29.040
+A theorem prover like Lean 4
+
+35:29.040 --> 35:31.240
+operates on the Curry-Howard correspondence.
+
+35:32.120 --> 35:34.240
+The Curry-Howard correspondence.
+
+35:34.620 --> 35:34.820
+Okay.
+
+35:35.280 --> 35:37.500
+It's the principle that mathematical proofs
+
+35:37.500 --> 35:38.400
+and computer programs
+
+35:38.400 --> 35:40.620
+are fundamentally the exact same thing.
+
+35:41.200 --> 35:42.900
+Writing a rigorous mathematical proof
+
+35:42.900 --> 35:44.000
+that a structure is valid
+
+35:44.000 --> 35:45.720
+is identical to writing the code
+
+35:45.720 --> 35:47.060
+that compiles that structure.
+
+35:47.500 --> 35:47.760
+Wow.
+
+35:48.460 --> 35:50.540
+Flyxion wrote a grammar in Lean 4
+
+35:50.540 --> 35:52.740
+that actively processes this calculus.
+
+35:53.300 --> 35:54.280
+You can feed this program
+
+35:54.280 --> 35:56.720
+the pure algebraic definition of a binary tree.
+
+35:56.720 --> 35:58.600
+The compiler automatically takes
+
+35:58.600 --> 35:59.740
+the mathematical derivative,
+
+36:00.320 --> 36:02.500
+calculates the required zipper stack lengths,
+
+36:02.680 --> 36:04.000
+saying for this specific tree,
+
+36:04.160 --> 36:06.520
+the depths are 2, 2, 1,
+
+36:06.720 --> 36:09.100
+and generates the optimal navigation code.
+
+36:09.640 --> 36:11.220
+It then runs internal proofs
+
+36:11.220 --> 36:12.780
+to guarantee it can replace a leaf
+
+36:12.780 --> 36:14.160
+and rebuild the entire tree
+
+36:14.160 --> 36:15.700
+without a single memory error.
+
+36:16.320 --> 36:18.060
+So the computer is performing
+
+36:18.060 --> 36:20.180
+the calculus on the data types
+
+36:20.180 --> 36:23.020
+and writing its own mathematically proven
+
+36:23.020 --> 36:24.140
+memory management code
+
+36:24.140 --> 36:25.440
+based on the result.
+
+36:25.440 --> 36:27.260
+It's literally a compiler
+
+36:27.260 --> 36:28.580
+that understands calculus.
+
+36:28.720 --> 36:30.240
+That is incredible.
+
+36:30.480 --> 36:31.220
+It really is.
+
+36:31.760 --> 36:32.580
+Before we move into
+
+36:32.580 --> 36:33.840
+the final stages of the paper,
+
+36:33.960 --> 36:35.240
+there is a brief mention
+
+36:35.240 --> 36:37.100
+of an alternative mathematical lens
+
+36:37.100 --> 36:38.260
+called containers.
+
+36:38.940 --> 36:40.500
+What is the distinction there?
+
+36:40.940 --> 36:42.160
+It's not a different truth,
+
+36:42.280 --> 36:44.440
+but rather a different geometric approach
+
+36:44.440 --> 36:45.800
+to the exact same truth.
+
+36:46.200 --> 36:47.700
+The formulation we've been using,
+
+36:47.880 --> 36:49.800
+recursive equations and fixed points,
+
+36:50.340 --> 36:52.560
+calculates the context layer by layer,
+
+36:52.800 --> 36:53.800
+stepping through the data
+
+36:53.800 --> 36:54.780
+from the inside out.
+
+36:54.780 --> 36:55.860
+The maze method.
+
+36:56.380 --> 36:56.540
+Right.
+
+36:57.320 --> 36:58.620
+The containers formulation,
+
+36:58.960 --> 37:00.480
+developed by researchers Abbott,
+
+37:00.640 --> 37:02.420
+Altenkirsch, Ghani, and McBride,
+
+37:02.680 --> 37:03.840
+looks at the data type
+
+37:03.840 --> 37:05.100
+from a macro perspective.
+
+37:05.700 --> 37:06.620
+Instead of layers,
+
+37:06.920 --> 37:08.000
+it describes a structure
+
+37:08.000 --> 37:09.920
+entirely by its overall shape
+
+37:09.920 --> 37:12.100
+and the positions inside that shape.
+
+37:12.240 --> 37:13.180
+So pulling back.
+
+37:13.500 --> 37:13.980
+Exactly.
+
+37:14.480 --> 37:15.160
+For a list,
+
+37:15.380 --> 37:16.840
+the shape is just a single integer.
+
+37:17.180 --> 37:17.960
+It's total length.
+
+37:17.960 --> 37:20.160
+The positions are the index numbers,
+
+37:20.280 --> 37:21.820
+zero, one, two, three, and so on.
+
+37:22.340 --> 37:23.940
+Taking the derivative of a container
+
+37:23.940 --> 37:26.480
+means holding the overall shape constant,
+
+37:26.900 --> 37:28.500
+picking one specific position
+
+37:28.500 --> 37:29.820
+to act as the whole,
+
+37:30.180 --> 37:31.860
+and structurally assigning values
+
+37:31.860 --> 37:33.200
+to all the remaining positions.
+
+37:33.400 --> 37:34.840
+It's like analyzing a sculpture.
+
+37:35.520 --> 37:37.480
+The recursive method is like
+
+37:37.480 --> 37:38.520
+walking around the sculpture
+
+37:38.520 --> 37:40.540
+inch by inch with a magnifying glass,
+
+37:40.920 --> 37:42.200
+recording every bump and curve.
+
+37:42.860 --> 37:44.400
+The container method
+
+37:44.400 --> 37:45.580
+is like stepping back,
+
+37:45.960 --> 37:46.740
+looking at the shadow
+
+37:46.740 --> 37:47.540
+it casts on the wall
+
+37:47.540 --> 37:49.240
+and deducing its total volume.
+
+37:50.340 --> 37:51.260
+They are just different
+
+37:51.260 --> 37:52.480
+observational techniques
+
+37:52.480 --> 37:53.440
+proving the existence
+
+37:53.440 --> 37:55.180
+of the exact same solid object.
+
+37:56.200 --> 37:57.160
+The math arrives
+
+37:57.160 --> 37:58.500
+at the exact same context
+
+37:58.500 --> 38:00.300
+regardless of the method used.
+
+38:00.920 --> 38:01.980
+The robustness of the math
+
+38:01.980 --> 38:03.200
+is undeniable.
+
+38:04.000 --> 38:05.260
+However, up to this point,
+
+38:05.600 --> 38:06.860
+we have only conquered
+
+38:06.860 --> 38:08.780
+pure structural shapes,
+
+38:09.080 --> 38:09.760
+lists and trees.
+
+38:10.080 --> 38:10.760
+Just the geometry.
+
+38:10.920 --> 38:11.060
+Right.
+
+38:11.060 --> 38:13.500
+But data in the real world
+
+38:13.500 --> 38:14.460
+of software engineering
+
+38:14.460 --> 38:15.980
+isn't always just raw,
+
+38:16.220 --> 38:16.980
+physical shape.
+
+38:17.700 --> 38:19.120
+Data often has rules.
+
+38:19.500 --> 38:20.760
+It has linguistic laws
+
+38:20.760 --> 38:21.680
+and semantic meaning
+
+38:21.680 --> 38:22.380
+attached to it,
+
+38:22.760 --> 38:23.860
+much like the syntax
+
+38:23.860 --> 38:25.460
+of a programming language itself.
+
+38:26.180 --> 38:27.500
+What happens to our calculus
+
+38:27.500 --> 38:28.600
+when the data
+
+38:28.600 --> 38:29.480
+isn't just structural,
+
+38:29.860 --> 38:31.360
+but has logical laws
+
+38:31.360 --> 38:32.980
+it absolutely must obey?
+
+38:33.180 --> 38:33.860
+Well, that feels like
+
+38:33.860 --> 38:34.880
+a massive complication.
+
+38:35.760 --> 38:36.720
+Navigating a structure
+
+38:36.720 --> 38:37.420
+is one thing,
+
+38:37.820 --> 38:40.080
+but actively enforcing rules
+
+38:40.080 --> 38:41.140
+while you navigate it?
+
+38:41.400 --> 38:42.600
+How does the theory address that?
+
+38:42.640 --> 38:43.600
+This is where we engage
+
+38:43.600 --> 38:45.140
+with the final major hurdle
+
+38:45.140 --> 38:46.180
+of Flyxion's paper,
+
+38:46.460 --> 38:47.460
+dealing with syntax,
+
+38:47.920 --> 38:48.180
+binding,
+
+38:48.440 --> 38:49.860
+and the three layers of truth.
+
+38:50.400 --> 38:51.800
+The three layers of truth.
+
+38:52.340 --> 38:52.860
+I like that.
+
+38:52.860 --> 38:54.200
+When we discuss
+
+38:54.200 --> 38:54.840
+the syntax
+
+38:54.840 --> 38:56.420
+of a programming language,
+
+38:56.640 --> 38:57.500
+we have to deal
+
+38:57.500 --> 38:58.180
+with the problem
+
+38:58.180 --> 38:59.560
+of variable binding.
+
+39:00.140 --> 39:01.320
+This adds a profound layer
+
+39:01.320 --> 39:02.680
+of semantic complexity
+
+39:02.680 --> 39:04.860
+on top of the structural complexity.
+
+39:04.860 --> 39:07.680
+Consider a dependent function type,
+
+39:07.820 --> 39:09.020
+typically written as
+
+39:09.020 --> 39:12.580
+parentheses x colon a arrow b.
+
+39:13.300 --> 39:14.220
+Okay, let's break that down.
+
+39:14.660 --> 39:15.500
+In this expression,
+
+39:16.080 --> 39:17.440
+a represents the domain.
+
+39:17.880 --> 39:19.160
+It defines the strict rules
+
+39:19.160 --> 39:20.720
+for what type of thing
+
+39:20.720 --> 39:22.680
+the variable x is allowed to be.
+
+39:23.360 --> 39:25.600
+B is the body of the function.
+
+39:26.320 --> 39:28.580
+Crucially, b acts as a scope.
+
+39:28.960 --> 39:30.400
+It is an enclosed environment
+
+39:30.400 --> 39:31.960
+where the variable x
+
+39:31.960 --> 39:33.800
+is legally allowed to exist,
+
+39:34.280 --> 39:34.940
+be referenced,
+
+39:35.180 --> 39:36.040
+and be manipulated.
+
+39:36.820 --> 39:38.380
+However, the domain a
+
+39:38.380 --> 39:39.940
+is evaluated before
+
+39:39.940 --> 39:41.020
+the variable x
+
+39:41.020 --> 39:42.240
+is even instantiated.
+
+39:42.660 --> 39:43.840
+Therefore, inside a,
+
+39:43.840 --> 39:45.220
+the variable x
+
+39:45.220 --> 39:47.000
+technically does not exist yet.
+
+39:47.640 --> 39:48.280
+Okay, this is getting
+
+39:48.280 --> 39:49.320
+highly abstract,
+
+39:49.640 --> 39:50.360
+so I want to introduce
+
+39:50.360 --> 39:51.460
+an analogy to ground
+
+39:51.460 --> 39:53.560
+this concept of scope and binding.
+
+39:54.440 --> 39:55.140
+Let's call it
+
+39:55.140 --> 39:56.460
+the legal contract analogy.
+
+39:56.980 --> 39:57.580
+Let's hear it.
+
+39:57.800 --> 39:59.080
+Imagine you were a lawyer
+
+39:59.080 --> 40:00.100
+editing a massive,
+
+40:00.100 --> 40:01.800
+highly complex legal contract.
+
+40:02.440 --> 40:04.000
+The overall physical structure
+
+40:04.000 --> 40:04.640
+of the contract,
+
+40:04.800 --> 40:05.340
+the paragraphs,
+
+40:05.680 --> 40:06.600
+the nested bullet points,
+
+40:06.700 --> 40:07.640
+the grammar of the sentences,
+
+40:08.160 --> 40:09.800
+that is our pure data structure.
+
+40:10.180 --> 40:11.440
+It's the tree we just learned
+
+40:11.440 --> 40:11.960
+how to navigate
+
+40:11.960 --> 40:13.280
+with our calculus zipper.
+
+40:13.720 --> 40:14.480
+Structure, right.
+
+40:14.720 --> 40:17.100
+Now, imagine a specific clause
+
+40:17.100 --> 40:17.720
+in the contract
+
+40:17.720 --> 40:19.200
+operates like our function,
+
+40:19.620 --> 40:21.380
+x colon a arrow b.
+
+40:22.320 --> 40:24.120
+A is the definition section
+
+40:24.120 --> 40:25.420
+on page one of the contract.
+
+40:25.920 --> 40:27.320
+It formally defines a term.
+
+40:27.420 --> 40:28.140
+Let's say it defines
+
+40:28.140 --> 40:29.200
+the corporation,
+
+40:29.200 --> 40:30.260
+and it's referring
+
+40:30.260 --> 40:31.760
+exclusively to a company
+
+40:31.760 --> 40:32.880
+registered in Delaware.
+
+40:33.580 --> 40:33.700
+Okay.
+
+40:34.500 --> 40:36.280
+B is the rest of the contract,
+
+40:36.660 --> 40:37.700
+pages two through ten.
+
+40:38.340 --> 40:39.820
+These pages constantly reference
+
+40:39.820 --> 40:40.820
+and use the term
+
+40:40.820 --> 40:41.800
+the corporation.
+
+40:42.240 --> 40:43.620
+Those pages are the scope.
+
+40:44.180 --> 40:44.960
+Here's the problem.
+
+40:45.500 --> 40:47.620
+If I use my structural zipper
+
+40:47.620 --> 40:48.920
+to navigate backward
+
+40:48.920 --> 40:49.680
+to page one,
+
+40:49.900 --> 40:51.000
+the domain A,
+
+40:51.500 --> 40:52.760
+and I completely rewrite
+
+40:52.760 --> 40:53.620
+the definition of
+
+40:53.620 --> 40:54.500
+the corporation
+
+40:54.500 --> 40:56.160
+to refer to a company
+
+40:56.160 --> 40:57.200
+in California.
+
+40:57.840 --> 40:59.080
+The physical structure
+
+40:59.080 --> 40:59.540
+of the contract
+
+40:59.540 --> 41:00.860
+is still perfectly fine.
+
+41:01.320 --> 41:01.960
+The paragraphs
+
+41:01.960 --> 41:02.760
+are still paragraphs.
+
+41:03.260 --> 41:04.700
+The tree is completely intact.
+
+41:05.220 --> 41:06.380
+The geometry holds.
+
+41:06.620 --> 41:07.920
+But by changing
+
+41:07.920 --> 41:08.480
+that definition
+
+41:08.480 --> 41:09.320
+on page one,
+
+41:09.900 --> 41:10.700
+I might have just made
+
+41:10.700 --> 41:11.900
+the clauses on page ten,
+
+41:12.040 --> 41:12.520
+the body,
+
+41:12.800 --> 41:13.020
+be,
+
+41:13.540 --> 41:14.280
+legally invalid
+
+41:14.280 --> 41:15.560
+because page ten
+
+41:15.560 --> 41:16.200
+was relying on
+
+41:16.200 --> 41:17.500
+the old Delaware definition
+
+41:17.500 --> 41:18.500
+that I just destroyed.
+
+41:19.160 --> 41:20.580
+The structural derivative
+
+41:20.580 --> 41:21.280
+is intact,
+
+41:21.280 --> 41:22.360
+but the meaning
+
+41:22.360 --> 41:22.980
+and the rules
+
+41:22.980 --> 41:23.580
+are broken.
+
+41:24.140 --> 41:25.060
+The contract analogy
+
+41:25.060 --> 41:26.620
+perfectly encapsulates
+
+41:26.620 --> 41:27.840
+Flyxion's central thesis
+
+41:27.840 --> 41:28.600
+on syntax.
+
+41:29.020 --> 41:29.240
+In fact,
+
+41:29.360 --> 41:30.020
+Flyxion states
+
+41:30.020 --> 41:30.720
+this distinction
+
+41:30.720 --> 41:32.380
+is the organizing claim
+
+41:32.380 --> 41:33.880
+of the entire essay.
+
+41:34.300 --> 41:34.980
+When we deal with
+
+41:34.980 --> 41:35.840
+syntax and meaning,
+
+41:36.000 --> 41:37.100
+we simply cannot rely
+
+41:37.100 --> 41:37.960
+solely on the
+
+41:37.960 --> 41:38.780
+structural derivative.
+
+41:39.260 --> 41:40.340
+We must deliberately
+
+41:40.340 --> 41:41.700
+separate our understanding
+
+41:41.700 --> 41:43.740
+into three distinct
+
+41:43.740 --> 41:45.080
+interacting layers
+
+41:45.080 --> 41:45.900
+of information.
+
+41:47.020 --> 41:48.480
+The three layers.
+
+41:49.120 --> 41:49.820
+Let's go through them.
+
+41:49.820 --> 41:51.060
+Layer one
+
+41:51.060 --> 41:52.220
+is reconstruction.
+
+41:53.100 --> 41:54.020
+This is the mathematical
+
+41:54.020 --> 41:55.160
+derivative we've spent
+
+41:55.160 --> 41:56.580
+our time deriving today.
+
+41:56.900 --> 41:57.760
+This is pure
+
+41:57.760 --> 41:58.640
+physical structure.
+
+41:58.860 --> 41:59.720
+It answers the question,
+
+42:00.260 --> 42:01.460
+what physical data blocks
+
+42:01.460 --> 42:02.320
+do I need to rebuild
+
+42:02.320 --> 42:02.740
+the tree?
+
+42:02.940 --> 42:03.680
+It is the paragraphs
+
+42:03.680 --> 42:04.480
+and bullet points
+
+42:04.480 --> 42:05.140
+of your contract.
+
+42:05.620 --> 42:05.760
+Okay.
+
+42:06.080 --> 42:07.040
+Layer one is structure.
+
+42:07.640 --> 42:08.260
+What's layer two?
+
+42:08.820 --> 42:10.100
+Layer two is scope.
+
+42:10.660 --> 42:11.320
+This is managed
+
+42:11.320 --> 42:12.340
+by what the paper calls
+
+42:12.340 --> 42:13.740
+a binder-aware zipper.
+
+42:14.080 --> 42:15.860
+This is the linguistic context.
+
+42:16.100 --> 42:16.580
+It answers,
+
+42:16.900 --> 42:17.600
+what variables
+
+42:17.600 --> 42:18.820
+am I legally allowed
+
+42:18.820 --> 42:19.800
+to use or reference
+
+42:19.800 --> 42:21.460
+at this exact coordinate
+
+42:21.460 --> 42:22.240
+in the structure?
+
+42:22.660 --> 42:23.460
+This requires
+
+42:23.460 --> 42:24.880
+an ambient context,
+
+42:25.180 --> 42:26.440
+an active running list
+
+42:26.440 --> 42:27.360
+of names and memory.
+
+42:27.820 --> 42:28.620
+In your analogy,
+
+42:28.760 --> 42:29.880
+this is the legal system
+
+42:29.880 --> 42:30.700
+actively tracking
+
+42:30.700 --> 42:31.480
+whether the term
+
+42:31.480 --> 42:32.380
+the corporation
+
+42:32.380 --> 42:33.780
+is currently defined
+
+42:33.780 --> 42:34.860
+in the specific section
+
+42:34.860 --> 42:35.520
+you are editing.
+
+42:35.800 --> 42:35.900
+Right.
+
+42:36.540 --> 42:37.440
+And layer three?
+
+42:37.860 --> 42:39.280
+Layer three is fit.
+
+42:39.580 --> 42:40.120
+This is handled
+
+42:40.120 --> 42:41.400
+by the typing judgment
+
+42:41.400 --> 42:42.240
+of the compiler.
+
+42:42.640 --> 42:43.160
+This answers
+
+42:43.160 --> 42:44.020
+the final question.
+
+42:44.460 --> 42:45.440
+Does the new data
+
+42:45.440 --> 42:46.460
+I put into the hole
+
+42:46.460 --> 42:48.060
+actually make logical sense?
+
+42:48.060 --> 42:49.080
+And crucially,
+
+42:49.300 --> 42:50.140
+does it violate
+
+42:50.140 --> 42:51.260
+or invalidate
+
+42:51.260 --> 42:52.460
+any of the retained parts
+
+42:52.460 --> 42:53.660
+I saved in my context?
+
+42:54.040 --> 42:55.540
+It is the final legal review,
+
+42:55.660 --> 42:56.800
+checking if page 10
+
+42:56.800 --> 42:57.460
+still complies
+
+42:57.460 --> 42:57.920
+with the edits
+
+42:57.920 --> 42:58.780
+made to page one.
+
+42:59.340 --> 42:59.960
+Reconstruction,
+
+43:00.460 --> 43:00.780
+scope,
+
+43:01.320 --> 43:01.840
+and fit.
+
+43:02.540 --> 43:03.140
+Structure,
+
+43:03.520 --> 43:03.800
+language,
+
+43:04.260 --> 43:04.800
+and logic.
+
+43:05.220 --> 43:06.440
+It brings a lot of clarity
+
+43:06.440 --> 43:07.480
+when you break it down
+
+43:07.480 --> 43:09.900
+into those three distinct mandates.
+
+43:09.900 --> 43:11.940
+I noticed in the paper
+
+43:11.940 --> 43:13.360
+Flyxion deliberately
+
+43:13.360 --> 43:14.800
+sets aside deeper complexities
+
+43:14.800 --> 43:17.040
+like locally nameless disciplines
+
+43:17.040 --> 43:17.720
+early on
+
+43:17.720 --> 43:19.240
+in order to isolate
+
+43:19.240 --> 43:20.000
+that first layer,
+
+43:20.100 --> 43:21.380
+the pure structural derivative.
+
+43:22.060 --> 43:22.740
+I'm really glad
+
+43:22.740 --> 43:23.260
+you brought up
+
+43:23.260 --> 43:24.520
+locally nameless disciplines.
+
+43:24.800 --> 43:25.880
+It's a dense term,
+
+43:26.060 --> 43:26.680
+but it highlights
+
+43:26.680 --> 43:27.780
+exactly why separating
+
+43:27.780 --> 43:28.940
+these layers is so vital.
+
+43:29.660 --> 43:31.360
+I have to admit,
+
+43:31.720 --> 43:33.160
+when I read locally nameless,
+
+43:33.260 --> 43:34.300
+my eyes crossed a bit.
+
+43:34.800 --> 43:35.560
+Can you unpack
+
+43:35.560 --> 43:37.000
+what that actually means
+
+43:37.000 --> 43:38.140
+for a compiler?
+
+43:38.800 --> 43:39.300
+Certainly.
+
+43:39.580 --> 43:40.180
+In programming,
+
+43:40.440 --> 43:41.420
+variable shadowing
+
+43:41.420 --> 43:42.900
+is a massive headache.
+
+43:43.240 --> 43:44.100
+Imagine you have
+
+43:44.100 --> 43:45.140
+a nested function.
+
+43:45.800 --> 43:46.560
+The outer function
+
+43:46.560 --> 43:47.360
+defines a variable
+
+43:47.360 --> 43:48.260
+named x.
+
+43:48.620 --> 43:49.720
+The inner function
+
+43:49.720 --> 43:50.960
+also defines
+
+43:50.960 --> 43:52.280
+a completely different variable,
+
+43:52.620 --> 43:54.540
+but it's also named x.
+
+43:54.920 --> 43:55.560
+Oh, that sounds
+
+43:55.560 --> 43:56.280
+like a disaster.
+
+43:56.600 --> 43:57.100
+It is.
+
+43:57.500 --> 43:58.400
+How does the computer
+
+43:58.400 --> 44:00.440
+know which x you mean
+
+44:00.440 --> 44:01.140
+when you are deep
+
+44:01.140 --> 44:02.220
+inside the inner function?
+
+44:02.820 --> 44:04.560
+A locally nameless discipline
+
+44:04.560 --> 44:05.240
+is a technique
+
+44:05.240 --> 44:06.640
+compilers use to solve this.
+
+44:07.280 --> 44:07.900
+They strip away
+
+44:07.900 --> 44:09.020
+the human-readable names
+
+44:09.020 --> 44:09.620
+entirely.
+
+44:10.140 --> 44:11.400
+Instead of calling it x,
+
+44:11.620 --> 44:12.900
+the compiler replaces
+
+44:12.900 --> 44:13.460
+the variable
+
+44:13.460 --> 44:14.960
+with a structural coordinate,
+
+44:15.520 --> 44:16.500
+an index number
+
+44:16.500 --> 44:17.580
+pointing to exactly
+
+44:17.580 --> 44:18.500
+how many layers
+
+44:18.500 --> 44:19.280
+up the tree
+
+44:19.280 --> 44:20.460
+the variable was defined.
+
+44:20.720 --> 44:22.660
+It converts linguistics
+
+44:22.660 --> 44:23.760
+into pure geometry.
+
+44:24.240 --> 44:25.520
+Oh, that's brilliant.
+
+44:25.700 --> 44:26.120
+It is.
+
+44:26.720 --> 44:27.500
+Flyxion
+
+44:27.500 --> 44:29.000
+sets this aside initially
+
+44:29.000 --> 44:31.100
+because you cannot enforce
+
+44:31.100 --> 44:32.780
+those linguistic index rules
+
+44:32.780 --> 44:34.120
+if you don't first possess
+
+44:34.120 --> 44:35.200
+a flawless map
+
+44:35.200 --> 44:35.920
+of the geometry.
+
+44:35.920 --> 44:37.700
+The structural derivative
+
+44:37.700 --> 44:38.820
+is the foundation.
+
+44:39.340 --> 44:40.740
+It provides the literal canvas
+
+44:40.740 --> 44:41.860
+upon which scope
+
+44:41.860 --> 44:43.240
+and fit must operate.
+
+44:43.920 --> 44:44.740
+You can't enforce the grammar
+
+44:44.740 --> 44:45.540
+if you don't even know
+
+44:45.540 --> 44:46.300
+how to build the sentences.
+
+44:46.520 --> 44:46.980
+Exactly.
+
+44:47.640 --> 44:48.880
+Well, having conquered
+
+44:48.880 --> 44:50.160
+the complexities of syntax
+
+44:50.160 --> 44:51.340
+and linguistic binding,
+
+44:51.800 --> 44:53.100
+we have one final
+
+44:53.100 --> 44:54.040
+mathematical frontier
+
+44:54.040 --> 44:54.920
+to explore today.
+
+44:55.440 --> 44:56.500
+We've spent this entire time
+
+44:56.500 --> 44:57.720
+taking the first derivative,
+
+44:58.320 --> 44:59.540
+poking a single hole
+
+44:59.540 --> 45:00.480
+in a data structure.
+
+45:00.800 --> 45:01.620
+But the prompt
+
+45:01.620 --> 45:02.500
+naturally arises.
+
+45:02.500 --> 45:04.300
+What happens if we push
+
+45:04.300 --> 45:05.220
+the pure mathematics
+
+45:05.220 --> 45:06.460
+to its absolute limit?
+
+45:07.220 --> 45:08.800
+Can we take the second derivative
+
+45:08.800 --> 45:09.980
+of a data structure?
+
+45:10.360 --> 45:11.100
+Poking a hole
+
+45:11.100 --> 45:12.140
+inside of a context
+
+45:12.140 --> 45:13.440
+that already has a hole.
+
+45:13.780 --> 45:15.060
+Let's revert to our
+
+45:15.060 --> 45:15.940
+algebraic dictionary
+
+45:15.940 --> 45:17.040
+to see how this works.
+
+45:17.280 --> 45:18.800
+We explored X squared,
+
+45:19.360 --> 45:19.760
+the pair.
+
+45:20.120 --> 45:22.020
+Let's escalate to X cubed.
+
+45:22.460 --> 45:23.880
+X times X times X.
+
+45:24.100 --> 45:24.920
+A structure with
+
+45:24.920 --> 45:26.780
+three data slots.
+
+45:27.020 --> 45:28.560
+Let's follow the math carefully.
+
+45:28.560 --> 45:30.460
+If we take the first derivative
+
+45:30.460 --> 45:31.300
+of X cubed,
+
+45:31.580 --> 45:32.300
+we are choosing
+
+45:32.300 --> 45:33.140
+one out of three
+
+45:33.140 --> 45:34.060
+possible positions
+
+45:34.060 --> 45:34.820
+to be the hole
+
+45:34.820 --> 45:36.900
+and retaining the other two intact.
+
+45:37.620 --> 45:39.540
+Using the calculus power rule,
+
+45:39.800 --> 45:41.240
+the derivative of X cubed
+
+45:41.240 --> 45:42.800
+is 3X squared.
+
+45:43.260 --> 45:43.660
+Correct.
+
+45:44.020 --> 45:45.440
+Now, we take
+
+45:45.440 --> 45:46.180
+the second derivative.
+
+45:46.780 --> 45:47.860
+We are taking the derivative
+
+45:47.860 --> 45:49.580
+of our result, 3X squared.
+
+45:50.020 --> 45:52.300
+We have two intact positions left.
+
+45:52.720 --> 45:53.960
+We choose one of those
+
+45:53.960 --> 45:55.000
+remaining two positions
+
+45:55.000 --> 45:56.200
+to be our second hole.
+
+45:57.060 --> 45:57.840
+In pure calculus,
+
+45:57.840 --> 45:58.960
+you bring the two down,
+
+45:59.160 --> 46:00.160
+multiply it by the three,
+
+46:00.580 --> 46:01.360
+the second derivative
+
+46:01.360 --> 46:03.500
+of X cubed resolves to 6X.
+
+46:03.900 --> 46:04.340
+It does.
+
+46:04.640 --> 46:04.860
+Okay.
+
+46:05.180 --> 46:06.640
+I have to challenge this result.
+
+46:07.260 --> 46:08.640
+I am looking at the number six
+
+46:08.640 --> 46:09.980
+and I am looking at
+
+46:09.980 --> 46:10.940
+the physical reality
+
+46:10.940 --> 46:11.820
+of our data structure
+
+46:11.820 --> 46:12.700
+and they just don't seem
+
+46:12.700 --> 46:13.780
+to align at all.
+
+46:14.100 --> 46:15.080
+What's the sticking point?
+
+46:15.420 --> 46:16.500
+Let's think about this logically.
+
+46:17.100 --> 46:18.040
+I have a structure
+
+46:18.040 --> 46:18.800
+with three slots.
+
+46:19.180 --> 46:21.320
+Slot one, slot two, slot three.
+
+46:21.760 --> 46:23.740
+I want to poke two holes in it.
+
+46:24.260 --> 46:26.060
+How many distinct ways
+
+46:26.060 --> 46:27.680
+can I physically do that?
+
+46:28.640 --> 46:29.900
+I can poke slot one
+
+46:29.900 --> 46:30.420
+and slot two.
+
+46:31.000 --> 46:32.140
+I can poke slot two
+
+46:32.140 --> 46:32.720
+and slot three.
+
+46:33.200 --> 46:34.720
+Or I can poke slot one
+
+46:34.720 --> 46:35.260
+and slot three.
+
+46:35.500 --> 46:37.600
+That is exactly three combinations.
+
+46:38.740 --> 46:39.760
+If I just want to know
+
+46:39.760 --> 46:41.120
+the unordered pairs of holes,
+
+46:41.340 --> 46:42.600
+the answer should be three.
+
+46:43.480 --> 46:45.340
+Why does the infallible law
+
+46:45.340 --> 46:47.300
+of calculus output six?
+
+46:48.040 --> 46:49.260
+What is the math seeing
+
+46:49.260 --> 46:51.180
+that my logic is entirely missing?
+
+46:51.180 --> 46:52.440
+This is perhaps
+
+46:52.440 --> 46:53.880
+the most profound revelation
+
+46:53.880 --> 46:55.560
+about what differential calculus
+
+46:55.560 --> 46:56.860
+is actually tracking
+
+46:56.860 --> 46:57.720
+beneath the surface.
+
+46:58.180 --> 46:59.360
+The number six records
+
+46:59.360 --> 47:00.820
+the six ordered choices
+
+47:00.820 --> 47:02.940
+of picking two distinct positions.
+
+47:03.340 --> 47:03.880
+Ordered choices.
+
+47:04.380 --> 47:04.680
+Yes.
+
+47:05.220 --> 47:07.320
+The calculus perfectly knows
+
+47:07.320 --> 47:08.620
+that the second selection
+
+47:08.620 --> 47:10.020
+is chronologically aware
+
+47:10.020 --> 47:11.120
+that the first selection
+
+47:11.120 --> 47:11.960
+already occurred.
+
+47:12.440 --> 47:13.660
+It knows that the second hole
+
+47:13.660 --> 47:15.240
+must actively avoid
+
+47:15.240 --> 47:16.780
+the location of the first hole.
+
+47:16.780 --> 47:17.860
+So let's list
+
+47:17.860 --> 47:19.280
+the chronological permutations.
+
+47:20.000 --> 47:20.920
+You can pick slot one
+
+47:20.920 --> 47:22.120
+then slot two.
+
+47:22.580 --> 47:24.140
+Or you can pick slot two
+
+47:24.140 --> 47:25.040
+then slot one.
+
+47:25.600 --> 47:26.740
+Slot two then three.
+
+47:27.500 --> 47:28.600
+Slot three then two.
+
+47:29.300 --> 47:30.400
+Slot one then three.
+
+47:31.040 --> 47:32.040
+Slot three then one.
+
+47:32.220 --> 47:32.440
+Wow.
+
+47:32.440 --> 47:34.780
+That is exactly six distinct
+
+47:34.780 --> 47:36.420
+chronologically ordered paths.
+
+47:37.120 --> 47:38.440
+The mathematics of derivatives
+
+47:38.440 --> 47:39.500
+strictly follows
+
+47:39.500 --> 47:41.540
+a step-by-step editing history.
+
+47:41.860 --> 47:43.340
+It is tracking the timeline
+
+47:43.340 --> 47:44.120
+of your actions
+
+47:44.120 --> 47:45.140
+not just providing
+
+47:45.140 --> 47:46.020
+a static snapshot
+
+47:46.020 --> 47:47.360
+of the final broken state.
+
+47:47.720 --> 47:49.720
+That is absolutely wild.
+
+47:50.580 --> 47:51.660
+The math tracks time
+
+47:51.660 --> 47:52.960
+and sequence inherently.
+
+47:53.600 --> 47:55.420
+It algebraically differentiates
+
+47:55.420 --> 47:57.520
+between the historical event
+
+47:57.520 --> 47:59.260
+of I took out the left book
+
+47:59.260 --> 48:00.140
+and then later took out
+
+48:00.140 --> 48:00.720
+the right book
+
+48:00.720 --> 48:02.320
+versus I took out
+
+48:02.320 --> 48:02.920
+the right book
+
+48:02.920 --> 48:03.520
+and then later
+
+48:03.520 --> 48:04.340
+took out the left book.
+
+48:04.880 --> 48:05.660
+It's all baked
+
+48:05.660 --> 48:06.340
+into the algebra.
+
+48:06.880 --> 48:07.460
+How does this
+
+48:07.460 --> 48:09.040
+chronological tracking apply
+
+48:09.040 --> 48:10.700
+when we scale it back up
+
+48:10.700 --> 48:11.880
+to our recursive
+
+48:11.880 --> 48:13.160
+infinitely growing list?
+
+48:13.540 --> 48:15.480
+Like if I am a programmer
+
+48:15.480 --> 48:17.460
+and I algorithmically
+
+48:17.460 --> 48:18.600
+poke dozens of holes
+
+48:18.600 --> 48:19.440
+in a massive list.
+
+48:19.980 --> 48:21.100
+Flyxion addresses this
+
+48:21.100 --> 48:21.780
+through repeated
+
+48:21.780 --> 48:22.580
+list differentiation.
+
+48:23.220 --> 48:23.960
+If you take
+
+48:23.960 --> 48:24.960
+the kth derivative
+
+48:24.960 --> 48:25.840
+of a list L
+
+48:25.840 --> 48:26.740
+meaning you poke
+
+48:26.740 --> 48:27.760
+k number of holes
+
+48:27.760 --> 48:28.560
+in it over time
+
+48:28.560 --> 48:29.760
+the algebraic formula
+
+48:29.760 --> 48:30.400
+resolves to
+
+48:30.400 --> 48:31.460
+L to the k
+
+48:31.460 --> 48:33.320
+equals k factorial
+
+48:33.320 --> 48:35.240
+times L to the k plus 1.
+
+48:35.440 --> 48:36.180
+Let's translate
+
+48:36.180 --> 48:37.240
+that final equation
+
+48:37.240 --> 48:37.740
+for the listener
+
+48:37.740 --> 48:38.920
+because that's a lot.
+
+48:39.580 --> 48:40.440
+If you poke
+
+48:40.440 --> 48:42.060
+k holes in a list
+
+48:42.060 --> 48:43.260
+you are left with
+
+48:43.260 --> 48:44.560
+k plus 1
+
+48:44.560 --> 48:45.480
+intact segments
+
+48:45.480 --> 48:46.100
+of the list
+
+48:46.100 --> 48:47.540
+floating around in memory.
+
+48:47.680 --> 48:48.560
+That is the
+
+48:48.560 --> 48:50.380
+L to the k plus 1
+
+48:50.380 --> 48:51.120
+part of the equation.
+
+48:51.400 --> 48:51.500
+Right.
+
+48:52.040 --> 48:53.240
+And the k factorial
+
+48:53.240 --> 48:54.620
+that represents
+
+48:54.620 --> 48:56.080
+every single possible
+
+48:56.080 --> 48:57.440
+historical permutation
+
+48:57.440 --> 48:58.380
+of the order
+
+48:58.380 --> 48:59.040
+in which you poke
+
+48:59.040 --> 48:59.560
+those holes.
+
+49:00.320 --> 49:01.180
+It calculates
+
+49:01.180 --> 49:02.080
+the exact number
+
+49:02.080 --> 49:02.640
+of timelines
+
+49:02.640 --> 49:03.120
+that could have
+
+49:03.120 --> 49:03.940
+resulted in that
+
+49:03.940 --> 49:05.140
+specific broken state.
+
+49:06.240 --> 49:06.920
+It's like
+
+49:06.920 --> 49:08.300
+shattering a pane
+
+49:08.300 --> 49:09.060
+of glass on the floor
+
+49:09.060 --> 49:10.400
+and the mathematics
+
+49:10.400 --> 49:11.600
+not only tells you
+
+49:11.600 --> 49:12.340
+exactly how many
+
+49:12.340 --> 49:13.280
+shards you have
+
+49:13.280 --> 49:14.440
+but it catalogs
+
+49:14.440 --> 49:15.300
+every single possible
+
+49:15.300 --> 49:16.600
+sequence of hammer strikes
+
+49:16.600 --> 49:17.340
+that could have
+
+49:17.340 --> 49:18.260
+produced that exact
+
+49:18.260 --> 49:19.240
+pattern of shards.
+
+49:19.600 --> 49:20.640
+It is intensely
+
+49:20.640 --> 49:22.120
+almost overwhelmingly
+
+49:22.120 --> 49:22.820
+precise.
+
+49:23.440 --> 49:25.080
+But as Flyxion
+
+49:25.080 --> 49:25.940
+notes in grounding
+
+49:25.940 --> 49:26.760
+this theory back
+
+49:26.760 --> 49:27.440
+in the reality
+
+49:27.440 --> 49:28.560
+of software engineering
+
+49:28.560 --> 49:29.960
+this is also
+
+49:29.960 --> 49:30.800
+where we identify
+
+49:30.800 --> 49:32.080
+the functional limits
+
+49:32.080 --> 49:33.500
+of the mathematical mapping
+
+49:33.500 --> 49:34.540
+where it breaks down
+
+49:34.540 --> 49:35.780
+or where it just
+
+49:35.780 --> 49:36.860
+becomes too much information.
+
+49:37.500 --> 49:38.360
+This entire framework
+
+49:38.360 --> 49:39.740
+operates flawlessly
+
+49:39.740 --> 49:40.860
+because we are dealing
+
+49:40.860 --> 49:41.620
+with pure
+
+49:41.620 --> 49:42.860
+structural combinations.
+
+49:43.520 --> 49:44.180
+We are executing
+
+49:44.180 --> 49:45.740
+algebraic topology
+
+49:45.740 --> 49:47.340
+applied to computer memory.
+
+49:48.020 --> 49:48.520
+This precision
+
+49:48.520 --> 49:49.380
+is exactly why
+
+49:49.380 --> 49:50.760
+no rates of change
+
+49:50.760 --> 49:51.880
+no physical limits
+
+49:51.880 --> 49:53.440
+and no infinitesimals
+
+49:53.440 --> 49:54.060
+are required
+
+49:54.060 --> 49:54.820
+or welcome
+
+49:54.820 --> 49:55.660
+in this discipline.
+
+49:55.660 --> 49:56.740
+However,
+
+49:56.900 --> 49:57.740
+the math provides
+
+49:57.740 --> 49:58.520
+the absolute
+
+49:58.520 --> 49:59.660
+chronological truth.
+
+50:00.140 --> 50:01.040
+The programmer
+
+50:01.040 --> 50:01.800
+must decide
+
+50:01.800 --> 50:02.560
+what portion
+
+50:02.560 --> 50:03.200
+of that truth
+
+50:03.200 --> 50:04.300
+is actually useful
+
+50:04.300 --> 50:05.180
+for their specific
+
+50:05.180 --> 50:05.740
+architecture.
+
+50:06.180 --> 50:06.260
+Right.
+
+50:06.720 --> 50:07.740
+The math hands you
+
+50:07.740 --> 50:08.360
+the total
+
+50:08.360 --> 50:10.120
+topological reality.
+
+50:11.020 --> 50:11.980
+But if you were
+
+50:11.980 --> 50:12.460
+just writing
+
+50:12.460 --> 50:13.620
+a simple text editor
+
+50:13.620 --> 50:14.440
+for a web browser
+
+50:14.440 --> 50:15.520
+you probably do not care
+
+50:15.520 --> 50:17.140
+what historical order
+
+50:17.140 --> 50:18.020
+the user deleted
+
+50:18.020 --> 50:19.000
+two separate words.
+
+50:19.840 --> 50:20.540
+You only care
+
+50:20.540 --> 50:21.440
+that the words are gone
+
+50:21.440 --> 50:22.300
+and the document
+
+50:22.300 --> 50:22.940
+needs to render.
+
+50:23.740 --> 50:24.220
+In that case
+
+50:24.220 --> 50:25.460
+the programmer discards
+
+50:25.460 --> 50:26.760
+the k-factorial tags
+
+50:26.760 --> 50:27.980
+and just utilizes
+
+50:27.980 --> 50:29.280
+the remaining text segments.
+
+50:29.840 --> 50:30.300
+Exactly.
+
+50:30.560 --> 50:31.540
+The paper does not
+
+50:31.540 --> 50:32.800
+over-claim its utility.
+
+50:33.180 --> 50:34.460
+Flyxion delineates
+
+50:34.460 --> 50:35.180
+exactly where
+
+50:35.180 --> 50:36.120
+the pure calculus
+
+50:36.120 --> 50:37.200
+provides the ultimate
+
+50:37.200 --> 50:38.440
+architectural blueprint
+
+50:38.440 --> 50:40.200
+and where the specific
+
+50:40.200 --> 50:41.140
+pragmatic domain
+
+50:41.140 --> 50:42.320
+of software engineering
+
+50:42.320 --> 50:43.200
+takes over
+
+50:43.200 --> 50:43.780
+to optimize
+
+50:43.780 --> 50:44.640
+for human use.
+
+50:44.640 --> 50:46.120
+What an absolute journey
+
+50:46.120 --> 50:47.100
+this has been today.
+
+50:48.040 --> 50:48.840
+Let's summarize
+
+50:48.840 --> 50:49.620
+the immense amount
+
+50:49.620 --> 50:49.980
+of ground
+
+50:49.980 --> 50:50.760
+we have covered.
+
+50:50.760 --> 50:51.940
+We began with
+
+50:51.940 --> 50:52.500
+a tangible
+
+50:52.500 --> 50:53.600
+physical problem
+
+50:53.600 --> 50:54.860
+how a computer
+
+50:54.860 --> 50:55.600
+pulls a single
+
+50:55.600 --> 50:56.060
+piece of data
+
+50:56.060 --> 50:56.700
+out of memory
+
+50:56.700 --> 50:57.460
+without letting
+
+50:57.460 --> 50:58.200
+the surrounding
+
+50:58.200 --> 50:59.240
+structure collapse
+
+50:59.240 --> 51:00.540
+into a garbage
+
+51:00.540 --> 51:01.360
+collection void.
+
+51:02.060 --> 51:02.800
+The book on the shelf.
+
+51:03.100 --> 51:03.260
+Yep.
+
+51:03.980 --> 51:04.620
+We translated
+
+51:04.620 --> 51:05.220
+that physical
+
+51:05.220 --> 51:06.220
+memory problem
+
+51:06.220 --> 51:06.900
+into a dictionary
+
+51:06.900 --> 51:07.540
+of pure
+
+51:07.540 --> 51:08.600
+mathematical algebra.
+
+51:09.240 --> 51:09.740
+Zeros for
+
+51:09.740 --> 51:10.580
+impossible states
+
+51:10.580 --> 51:11.140
+ones for
+
+51:11.140 --> 51:12.040
+termination points
+
+51:12.040 --> 51:13.200
+sums for
+
+51:13.200 --> 51:14.340
+strict disjoint choices
+
+51:14.340 --> 51:14.940
+and products
+
+51:14.940 --> 51:15.440
+for paired
+
+51:15.440 --> 51:16.280
+structures in RAM.
+
+51:16.940 --> 51:17.260
+We took
+
+51:17.260 --> 51:17.780
+the mathematical
+
+51:17.780 --> 51:18.260
+derivatives
+
+51:18.260 --> 51:18.800
+of those
+
+51:18.800 --> 51:19.720
+algebraic formulas
+
+51:19.720 --> 51:20.780
+and discovered
+
+51:20.780 --> 51:21.500
+that the classic
+
+51:21.500 --> 51:22.480
+calculus rules
+
+51:22.480 --> 51:22.880
+you learned
+
+51:22.880 --> 51:23.500
+in high school
+
+51:23.500 --> 51:24.500
+the sum rule
+
+51:24.500 --> 51:25.120
+the product rule
+
+51:25.120 --> 51:25.640
+the chain rule
+
+51:25.640 --> 51:26.900
+literally generate
+
+51:26.900 --> 51:27.780
+the exact logical
+
+51:27.780 --> 51:29.020
+if-else instructions
+
+51:29.020 --> 51:29.960
+and computer processor
+
+51:29.960 --> 51:31.180
+needs to navigate
+
+51:31.180 --> 51:31.920
+and rebuild
+
+51:31.920 --> 51:32.580
+discrete data.
+
+51:33.120 --> 51:33.980
+They are not metaphors
+
+51:33.980 --> 51:34.820
+they are the literal
+
+51:34.820 --> 51:36.060
+architectural blueprints
+
+51:36.060 --> 51:36.720
+of software.
+
+51:37.000 --> 51:37.880
+It's just a beautiful
+
+51:37.880 --> 51:38.740
+realization.
+
+51:39.100 --> 51:39.400
+It is.
+
+51:40.060 --> 51:40.860
+We scaled that
+
+51:40.860 --> 51:41.540
+foundational truth
+
+51:41.540 --> 51:42.240
+up to handle
+
+51:42.240 --> 51:43.040
+recursive lists
+
+51:43.040 --> 51:44.220
+and massive
+
+51:44.220 --> 51:45.700
+branching binary trees
+
+51:45.700 --> 51:46.720
+uncovering the
+
+51:46.720 --> 51:47.480
+mathematical mandate
+
+51:47.480 --> 51:48.320
+that birthed
+
+51:48.320 --> 51:48.900
+the zipper
+
+51:48.900 --> 51:49.680
+data structure
+
+51:49.680 --> 51:51.160
+which revolutionized
+
+51:51.160 --> 51:51.920
+memory efficiency
+
+51:51.920 --> 51:52.400
+by turning
+
+51:52.400 --> 51:53.300
+massive copy
+
+51:53.300 --> 51:53.840
+operations
+
+51:53.840 --> 51:55.080
+into simple
+
+51:55.080 --> 51:55.860
+constant time
+
+51:55.860 --> 51:56.720
+pointer reversals.
+
+51:57.540 --> 51:58.200
+We navigated
+
+51:58.200 --> 51:58.640
+the semantic
+
+51:58.640 --> 51:59.420
+complexities of
+
+51:59.420 --> 52:00.140
+programming language
+
+52:00.140 --> 52:00.620
+syntax
+
+52:00.620 --> 52:02.000
+explicitly separating
+
+52:02.000 --> 52:02.920
+pure physical
+
+52:02.920 --> 52:03.580
+structure from
+
+52:03.580 --> 52:04.660
+linguistic scope
+
+52:04.660 --> 52:05.500
+and logical fit.
+
+52:06.060 --> 52:06.440
+And finally
+
+52:06.440 --> 52:07.120
+we pushed the math
+
+52:07.120 --> 52:07.760
+to its limits
+
+52:07.760 --> 52:08.700
+with second
+
+52:08.700 --> 52:09.140
+and third
+
+52:09.140 --> 52:09.640
+derivatives
+
+52:09.640 --> 52:10.660
+discovering that
+
+52:10.660 --> 52:11.420
+pure calculus
+
+52:11.420 --> 52:12.560
+naturally and
+
+52:12.560 --> 52:13.060
+inherently
+
+52:13.060 --> 52:14.040
+tracks the
+
+52:14.040 --> 52:15.000
+chronological history
+
+52:15.000 --> 52:15.700
+of our edits
+
+52:15.700 --> 52:16.960
+through factorial
+
+52:16.960 --> 52:17.720
+permutations.
+
+52:18.140 --> 52:18.600
+It represents
+
+52:18.600 --> 52:19.520
+a massive
+
+52:19.520 --> 52:20.540
+paradigm shift
+
+52:20.540 --> 52:21.100
+in how we
+
+52:21.100 --> 52:21.560
+approach
+
+52:21.560 --> 52:22.720
+structural problems
+
+52:22.720 --> 52:23.660
+and if we
+
+52:23.660 --> 52:24.120
+connect this
+
+52:24.120 --> 52:24.840
+to why you
+
+52:24.840 --> 52:25.380
+the listener
+
+52:25.380 --> 52:25.960
+should care
+
+52:25.960 --> 52:26.580
+about this
+
+52:26.580 --> 52:27.160
+even if you
+
+52:27.160 --> 52:27.660
+never write
+
+52:27.660 --> 52:28.540
+a single line
+
+52:28.540 --> 52:29.220
+of lean
+
+52:29.220 --> 52:30.020
+four code
+
+52:30.020 --> 52:30.740
+or solve
+
+52:30.740 --> 52:31.260
+a calculus
+
+52:31.260 --> 52:31.680
+equation
+
+52:31.680 --> 52:32.120
+for the rest
+
+52:32.120 --> 52:32.600
+of your life
+
+52:32.600 --> 52:34.000
+it is fundamentally
+
+52:34.000 --> 52:34.840
+about how we
+
+52:34.840 --> 52:35.320
+view the
+
+52:35.320 --> 52:35.960
+organization
+
+52:35.960 --> 52:37.020
+of human
+
+52:37.020 --> 52:37.680
+knowledge.
+
+52:38.040 --> 52:38.260
+How so?
+
+52:39.020 --> 52:39.740
+Well for anyone
+
+52:39.740 --> 52:40.420
+who deals with
+
+52:40.420 --> 52:41.380
+complex systems
+
+52:41.380 --> 52:42.020
+of information
+
+52:42.020 --> 52:43.300
+realizing that
+
+52:43.300 --> 52:44.420
+radically different
+
+52:44.420 --> 52:45.280
+fields of inquiry
+
+52:45.280 --> 52:45.900
+like the
+
+52:45.900 --> 52:46.420
+continuous
+
+52:46.420 --> 52:47.360
+mathematics of
+
+52:47.360 --> 52:48.480
+physics and
+
+52:48.480 --> 52:48.940
+the discrete
+
+52:48.940 --> 52:49.600
+logic of
+
+52:49.600 --> 52:50.380
+computer science
+
+52:50.380 --> 52:51.120
+are actually
+
+52:51.120 --> 52:52.200
+just different
+
+52:52.200 --> 52:53.300
+dialects speaking
+
+52:53.300 --> 52:54.660
+the exact same
+
+52:54.660 --> 52:55.680
+fundamental
+
+52:55.680 --> 52:56.760
+structural truth
+
+52:56.760 --> 52:57.960
+it changes how
+
+52:57.960 --> 52:58.520
+you analyze
+
+52:58.520 --> 52:59.140
+problems.
+
+52:59.420 --> 53:00.500
+It implies that
+
+53:00.500 --> 53:01.380
+the solution to
+
+53:01.380 --> 53:02.200
+a massive
+
+53:02.200 --> 53:03.020
+roadblock in
+
+53:03.020 --> 53:03.620
+one domain
+
+53:03.620 --> 53:04.640
+might already
+
+53:04.640 --> 53:05.520
+exist fully
+
+53:05.520 --> 53:06.160
+fleshed out
+
+53:06.160 --> 53:07.200
+and mathematically
+
+53:07.200 --> 53:08.400
+proven in a
+
+53:08.400 --> 53:09.300
+completely different
+
+53:09.300 --> 53:09.660
+domain.
+
+53:10.060 --> 53:10.980
+It is just
+
+53:10.980 --> 53:11.840
+waiting for someone
+
+53:11.840 --> 53:12.820
+to build the
+
+53:12.820 --> 53:13.700
+dictionary to
+
+53:13.700 --> 53:14.440
+translate it.
+
+53:14.720 --> 53:15.180
+It makes you
+
+53:15.180 --> 53:15.680
+wonder how many
+
+53:15.680 --> 53:16.220
+other hidden
+
+53:16.220 --> 53:16.980
+bridges exist
+
+53:16.980 --> 53:17.740
+between the
+
+53:17.740 --> 53:18.400
+disparate
+
+53:18.400 --> 53:19.120
+departments of
+
+53:19.120 --> 53:19.760
+human knowledge
+
+53:19.760 --> 53:20.480
+just waiting to
+
+53:20.480 --> 53:21.000
+be mapped.
+
+53:21.740 --> 53:22.340
+And on that
+
+53:22.340 --> 53:22.700
+note of
+
+53:22.700 --> 53:23.820
+ongoing discovery
+
+53:23.820 --> 53:24.860
+we want to
+
+53:24.860 --> 53:25.340
+leave you with
+
+53:25.340 --> 53:26.400
+one final
+
+53:26.400 --> 53:27.480
+provocative thought
+
+53:27.480 --> 53:28.080
+to mull over.
+
+53:29.160 --> 53:29.920
+We've spent
+
+53:29.920 --> 53:30.400
+this entire
+
+53:30.400 --> 53:30.900
+deep dive
+
+53:30.900 --> 53:31.920
+exploring what
+
+53:31.920 --> 53:32.400
+it means to
+
+53:32.400 --> 53:32.740
+take the
+
+53:32.740 --> 53:33.760
+derivative of
+
+53:33.760 --> 53:34.420
+a data structure
+
+53:34.420 --> 53:35.140
+the act of
+
+53:35.140 --> 53:36.200
+poking a hole
+
+53:36.200 --> 53:37.060
+isolating a piece
+
+53:37.060 --> 53:38.120
+of data and
+
+53:38.120 --> 53:38.920
+fracturing a hole
+
+53:38.920 --> 53:39.880
+into a context.
+
+53:40.440 --> 53:41.340
+But in standard
+
+53:41.340 --> 53:42.800
+calculus differentiation
+
+53:42.800 --> 53:44.180
+has an equal and
+
+53:44.180 --> 53:45.340
+opposite operation
+
+53:45.340 --> 53:46.440
+integration.
+
+53:47.060 --> 53:47.140
+Right.
+
+53:47.260 --> 53:48.140
+The anti-derivative.
+
+53:48.860 --> 53:50.320
+So if taking the
+
+53:50.320 --> 53:51.140
+derivative of a
+
+53:51.140 --> 53:52.280
+data type breaks it
+
+53:52.280 --> 53:53.200
+apart and creates a
+
+53:53.200 --> 53:54.780
+hole what would it
+
+53:54.780 --> 53:55.440
+mean to take the
+
+53:55.440 --> 53:56.540
+integral of a
+
+53:56.540 --> 53:57.060
+data type?
+
+53:57.820 --> 53:58.560
+Is there a
+
+53:58.560 --> 53:59.580
+mathematical formula
+
+53:59.580 --> 54:01.240
+for anti-contexts?
+
+54:01.840 --> 54:02.660
+Could there be a
+
+54:02.660 --> 54:03.740
+topological operation
+
+54:03.740 --> 54:04.300
+that takes an
+
+54:04.300 --> 54:05.140
+empty space and
+
+54:05.140 --> 54:06.060
+mathematically
+
+54:06.060 --> 54:07.380
+generates entirely
+
+54:07.380 --> 54:08.880
+new higher dimensions
+
+54:08.880 --> 54:09.440
+of data from
+
+54:09.440 --> 54:09.740
+nothing?
+
+54:09.740 --> 54:11.500
+If differentiation
+
+54:11.500 --> 54:12.920
+is the math of
+
+54:12.920 --> 54:13.920
+navigating down
+
+54:13.920 --> 54:14.340
+into the
+
+54:14.340 --> 54:15.340
+microscopic elements
+
+54:15.340 --> 54:15.780
+of data,
+
+54:16.480 --> 54:17.660
+is integration the
+
+54:17.660 --> 54:18.620
+foundational math
+
+54:18.620 --> 54:19.600
+of emergent
+
+54:19.600 --> 54:20.520
+complexity and
+
+54:20.520 --> 54:21.560
+generative structure?
+
+54:22.220 --> 54:22.800
+Something to
+
+54:22.800 --> 54:23.140
+chew on.
+
+54:23.760 --> 54:24.840
+Thank you so much
+
+54:24.840 --> 54:25.500
+for joining us on
+
+54:25.500 --> 54:26.120
+this deep dive,
+
+54:26.340 --> 54:27.140
+for stretching your
+
+54:27.140 --> 54:27.880
+mind across the
+
+54:27.880 --> 54:28.660
+disciplines with us
+
+54:28.660 --> 54:28.960
+today.
+
+54:29.660 --> 54:30.720
+We'll see you on
+
+54:30.720 --> 54:31.600
+the next deep dive.
+
+54:31.600 --> 54:31.840
+sabe?
+
+54:32.840 --> 54:33.160
+Bye.
+
+54:33.660 --> 54:34.260
+Bye.
+
+54:35.040 --> 54:35.460
+Bye.
+
+54:44.320 --> 54:44.400
+Bye.
+
+54:44.400 --> 54:44.440
+Bye.
+
+54:44.440 --> 54:44.480
+Bye.
+
+54:44.760 --> 54:44.920
+Bye.
+
+54:44.980 --> 54:49.080
+Bye.
+
+54:49.280 --> 54:50.280
+Bye.
+
+54:50.280 --> 54:50.360
+Bye.
+
+54:50.360 --> 54:50.420
+Bye.
+
+54:50.880 --> 54:51.580
+Bye.
+
+54:51.780 --> 54:52.440
+Bye.
+
+54:52.700 --> 54:53.000
+Bye.
+
+54:53.300 --> 54:53.460
+Bye.
+
+54:54.040 --> 54:54.740
+Bye.
+
+54:54.740 --> 54:54.760
+Bye.
+
+54:55.220 --> 54:55.400
+Bye.
+
+54:55.500 --> 54:56.640
+Bye.
+
+54:56.640 --> 54:56.780
+Bye.
+
+54:56.780 --> 54:58.700
+Bye.
+
+54:58.780 --> 54:59.720
+Bye.
+
+54:59.720 --> 55:00.860
+Bye.
+
+55:00.940 --> 55:01.220
+Bye.
+

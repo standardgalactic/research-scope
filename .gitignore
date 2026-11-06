@@ -1,0 +1,31 @@
+# LaTeX intermediate files
+*.aux
+*.log
+*.out
+*.toc
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.bbl
+*.blg
+*.nav
+*.snm
+*.vrb
+
+# Editor temporary files
+*~
+*.swp
+*.swo
+*.bak
+
+# Python caches
+__pycache__/
+*.pyc
+
+# Local environments
+.env
+.env.*
+!.env.example
+
+# Local transcription correction logs
+corrections.log
